@@ -3,7 +3,6 @@ import {
   Tooltip,
   Input,
   Avatar,
-  Select,
   Dropdown,
   Menu,
   Divider,
@@ -11,7 +10,6 @@ import {
   Button,
 } from '@arco-design/web-react';
 import {
-  IconLanguage,
   IconNotification,
   IconSunFill,
   IconMoonFill,
@@ -33,7 +31,6 @@ import MessageBox from '@/components/MessageBox';
 import IconButton from './IconButton';
 import Settings from '../Settings';
 import styles from './style/index.module.less';
-import defaultLocale from '@/locale';
 import useStorage from '@/utils/useStorage';
 import { generatePermission } from '@/routes';
 
@@ -45,7 +42,7 @@ function Navbar({ show }: { show: boolean }) {
   const [_, setUserStatus] = useStorage('userStatus');
   const [role, setRole] = useStorage('userRole', 'admin');
 
-  const { setLang, lang, theme, setTheme } = useContext(GlobalContext);
+  const { theme, setTheme } = useContext(GlobalContext);
 
   function logout() {
     setUserStatus('logout');
@@ -145,7 +142,7 @@ function Navbar({ show }: { show: boolean }) {
       <div className={styles.left}>
         <div className={styles.logo}>
           <Logo />
-          <div className={styles['logo-name']}>Arco Pro</div>
+          <div className={styles['logo-name']}>SimpleUX Pro</div>
         </div>
       </div>
       <ul className={styles.right}>
@@ -153,27 +150,6 @@ function Navbar({ show }: { show: boolean }) {
           <Input.Search
             className={styles.round}
             placeholder={t['navbar.search.placeholder']}
-          />
-        </li>
-        <li>
-          <Select
-            triggerElement={<IconButton icon={<IconLanguage />} />}
-            options={[
-              { label: '中文', value: 'zh-CN' },
-              { label: 'English', value: 'en-US' },
-            ]}
-            value={lang}
-            triggerProps={{
-              autoAlignPopupWidth: false,
-              autoAlignPopupMinWidth: true,
-              position: 'br',
-            }}
-            trigger="hover"
-            onChange={(value) => {
-              setLang(value);
-              const nextLang = defaultLocale[value];
-              Message.info(`${nextLang['message.lang.tips']}${value}`);
-            }}
           />
         </li>
         <li>

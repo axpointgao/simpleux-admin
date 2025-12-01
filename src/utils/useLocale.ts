@@ -1,11 +1,8 @@
-import { useContext } from 'react';
-import { GlobalContext } from '../context';
 import defaultLocale from '../locale';
 
 function useLocale(locale = null) {
-  const { lang } = useContext(GlobalContext);
-
-  return (locale || defaultLocale)[lang] || {};
+  // 固定使用中文
+  return (locale || defaultLocale)['zh-CN'] || {};
 }
 
 export default useLocale;

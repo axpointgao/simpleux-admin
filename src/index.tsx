@@ -5,7 +5,6 @@ import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { ConfigProvider } from '@arco-design/web-react';
 import zhCN from '@arco-design/web-react/es/locale/zh-CN';
-import enUS from '@arco-design/web-react/es/locale/en-US';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import axios from 'axios';
 import rootReducer from './store';
@@ -20,18 +19,11 @@ import './mock';
 const store = createStore(rootReducer);
 
 function Index() {
-  const [lang, setLang] = useStorage('arco-lang', 'en-US');
   const [theme, setTheme] = useStorage('arco-theme', 'light');
 
   function getArcoLocale() {
-    switch (lang) {
-      case 'zh-CN':
-        return zhCN;
-      case 'en-US':
-        return enUS;
-      default:
-        return zhCN;
-    }
+    // 固定使用中文
+    return zhCN;
   }
 
   function fetchUserInfo() {
@@ -60,8 +52,6 @@ function Index() {
   }, [theme]);
 
   const contextValue = {
-    lang,
-    setLang,
     theme,
     setTheme,
   };

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import dayjs from 'dayjs';
 import {
   Form,
@@ -8,7 +8,6 @@ import {
   Button,
   Grid,
 } from '@arco-design/web-react';
-import { GlobalContext } from '@/context';
 import locale from './locale';
 import useLocale from '@/utils/useLocale';
 import { IconRefresh, IconSearch } from '@arco-design/web-react/icon';
@@ -21,8 +20,6 @@ const { useForm } = Form;
 function SearchForm(props: {
   onSearch: (values: Record<string, any>) => void;
 }) {
-  const { lang } = useContext(GlobalContext);
-
   const t = useLocale(locale);
   const [form] = useForm();
 
@@ -36,7 +33,8 @@ function SearchForm(props: {
     props.onSearch({});
   };
 
-  const colSpan = lang === 'zh-CN' ? 8 : 12;
+  // 固定使用中文布局
+  const colSpan = 8;
 
   return (
     <div className={styles['search-form-wrapper']}>
