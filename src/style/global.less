@@ -1,5 +1,56 @@
 @import 'nprogress/nprogress.css';
 
+// ==================== 全局按钮样式变量 ====================
+// 主按钮颜色（绿色主题）
+// 注意：主题色通过 index.tsx 中的 initThemeColor() 函数初始化
+// 该函数会从 settings.json 读取 themeColor，并使用 @arco-design/color 生成颜色列表
+// 然后设置 --arcoblue-X 变量，--primary-X 会自动映射到 --arcoblue-X
+// 因此不需要在这里手动设置这些变量
+
+// ==================== 全局按钮样式 ====================
+// 主按钮样式（绿色主题）
+// 注意：使用 :global 确保样式应用到全局，而不是被 CSS Modules 处理
+// 使用与 Arco Design 相同或更高优先级的选择器来覆盖默认样式
+:global {
+  // 默认状态 - 使用更高优先级的选择器
+  .arco-btn.arco-btn-primary {
+    background-color: #00b42a !important;
+    border-color: #00b42a !important;
+    color: #ffffff !important;
+  }
+
+  // Hover 状态 - 使用与 Arco Design 相同的选择器，但使用 !important 强制覆盖
+  .arco-btn.arco-btn-primary:not(.arco-btn-disabled):not(
+      .arco-btn-loading
+    ):hover {
+    background-color: #23c343 !important;
+    border-color: #23c343 !important;
+    color: #ffffff !important;
+  }
+
+  // Active 状态
+  .arco-btn.arco-btn-primary:not(.arco-btn-disabled):not(
+      .arco-btn-loading
+    ):active {
+    background-color: #009a29 !important;
+    border-color: #009a29 !important;
+    color: #ffffff !important;
+  }
+
+  // Focus 状态
+  .arco-btn.arco-btn-primary:not(.arco-btn-disabled):focus-visible {
+    background-color: #00b42a !important;
+    border-color: #00b42a !important;
+    box-shadow: 0 0 0 2px rgba(0, 180, 42, 0.2) !important;
+  }
+
+  // Disabled 状态
+  .arco-btn.arco-btn-primary.arco-btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 html,
 body {
   width: 100%;

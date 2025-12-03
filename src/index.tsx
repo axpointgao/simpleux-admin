@@ -18,13 +18,85 @@ import useStorage from './utils/useStorage';
 import defaultSettings from './settings.json';
 import './mock';
 
+// 抑制 ResizeObserver 循环警告（这是浏览器已知问题，不影响功能）
+const originalError = window.onerror;
+const originalConsoleError = console.error;
+
+// 重写 window.onerror
+window.onerror = (message, source, lineno, colno, error) => {
+  const messageStr = String(message || '');
+  if (
+    messageStr.includes('ResizeObserver loop') ||
+    messageStr.includes('ResizeObserver loop limit exceeded') ||
+    messageStr.includes(
+      'ResizeObserver loop completed with undelivered notifications'
+    )
+  ) {
+    return true; // 抑制此错误
+  }
+  if (originalError) {
+    return originalError(message, source, lineno, colno, error);
+  }
+  return false;
+};
+
+// 重写 console.error 以捕获 ResizeObserver 错误
+console.error = (...args) => {
+  const errorMessage = args.join(' ');
+  if (
+    errorMessage.includes('ResizeObserver loop') ||
+    errorMessage.includes('ResizeObserver loop limit exceeded') ||
+    errorMessage.includes(
+      'ResizeObserver loop completed with undelivered notifications'
+    )
+  ) {
+    return; // 不输出 ResizeObserver 相关错误
+  }
+  originalConsoleError.apply(console, args);
+};
+
+// 捕获未处理的错误事件
+window.addEventListener(
+  'error',
+  (e) => {
+    const errorMessage = e.message || String(e.error || '');
+    if (
+      errorMessage.includes('ResizeObserver loop') ||
+      errorMessage.includes('ResizeObserver loop limit exceeded') ||
+      errorMessage.includes(
+        'ResizeObserver loop completed with undelivered notifications'
+      )
+    ) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      return false;
+    }
+  },
+  true
+); // 使用捕获阶段
+
+// 捕获未处理的 Promise 拒绝
+window.addEventListener('unhandledrejection', (e) => {
+  const errorMessage = e.reason?.message || String(e.reason || '');
+  if (
+    errorMessage.includes('ResizeObserver loop') ||
+    errorMessage.includes('ResizeObserver loop limit exceeded') ||
+    errorMessage.includes(
+      'ResizeObserver loop completed with undelivered notifications'
+    )
+  ) {
+    e.preventDefault();
+    return false;
+  }
+});
+
 const store = createStore(rootReducer);
 
 // 初始化主题色 CSS 变量
 function initThemeColor() {
-  const themeColor = defaultSettings.themeColor;
   const theme =
     document.querySelector('body')?.getAttribute('arco-theme') || 'light';
+  const themeColor = defaultSettings.themeColor || '#0baf2d';
   const list = generate(themeColor, {
     list: true,
     dark: theme === 'dark',
@@ -34,6 +106,9 @@ function initThemeColor() {
     document.body.style.setProperty(`--arcoblue-${index + 1}`, rgbStr);
   });
 }
+
+// 在应用启动时初始化主题色
+initThemeColor();
 
 function Index() {
   const [theme, setTheme] = useStorage('arco-theme', 'light');
@@ -57,9 +132,6 @@ function Index() {
   }
 
   useEffect(() => {
-    // 初始化主题色
-    initThemeColor();
-
     if (checkLogin()) {
       fetchUserInfo();
     } else if (window.location.pathname.replace(/\//g, '') !== 'login') {

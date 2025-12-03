@@ -50,6 +50,16 @@ function getIconFromKey(key) {
       return <IconExclamationCircle className={styles.icon} />;
     case 'user':
       return <IconUser className={styles.icon} />;
+    case 'projects':
+      return <IconFile className={styles.icon} />;
+    case 'performance':
+      return <IconCheckCircle className={styles.icon} />;
+    case 'tasks':
+      return <IconList className={styles.icon} />;
+    case 'approvals':
+      return <IconCheckCircle className={styles.icon} />;
+    case 'settings':
+      return <IconSettings className={styles.icon} />;
     default:
       return <div className={styles['icon-empty']} />;
   }
@@ -178,7 +188,7 @@ function PageLayout() {
   const paddingLeft = showMenu ? { paddingLeft: menuWidth } : {};
   const paddingTop = showNavbar ? { paddingTop: navbarHeight } : {};
   const paddingStyle = { ...paddingLeft, ...paddingTop };
-  
+
   function updateMenuStatus() {
     const pathKeys = pathname.split('/');
     const newSelectedKeys: string[] = [];
@@ -269,6 +279,20 @@ function PageLayout() {
                       />
                     );
                   })}
+                  {/* 项目详情页 */}
+                  <Route
+                    path="/projects/detail"
+                    component={lazyload(
+                      () => import('./pages/projects/detail')
+                    )}
+                  />
+                  {/* 项目创建/编辑页 */}
+                  <Route
+                    path="/projects/create"
+                    component={lazyload(
+                      () => import('./pages/projects/create')
+                    )}
+                  />
                   <Route exact path="/">
                     <Redirect to={`/${defaultRoute}`} />
                   </Route>

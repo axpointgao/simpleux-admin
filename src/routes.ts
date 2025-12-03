@@ -150,6 +150,79 @@ export const routes: IRoute[] = [
       },
     ],
   },
+  // 商业项目管理
+  {
+    name: 'menu.projects',
+    key: 'projects',
+    children: [
+      {
+        name: 'menu.projects.list',
+        key: 'projects/list',
+      },
+      {
+        name: 'menu.projects.create',
+        key: 'projects/create',
+        ignore: true,
+      },
+      {
+        name: 'menu.projects.detail',
+        key: 'projects/detail',
+        ignore: true,
+      },
+    ],
+  },
+  // 业绩管理
+  {
+    name: 'menu.performance',
+    key: 'performance',
+    children: [
+      {
+        name: 'menu.performance.list',
+        key: 'performance/list',
+      },
+    ],
+  },
+  // 任务和工时管理
+  {
+    name: 'menu.tasks',
+    key: 'tasks',
+    children: [
+      {
+        name: 'menu.tasks.list',
+        key: 'tasks/list',
+      },
+      {
+        name: 'menu.tasks.calendar',
+        key: 'tasks/calendar',
+      },
+    ],
+  },
+  // 审批管理
+  {
+    name: 'menu.approvals',
+    key: 'approvals',
+    children: [
+      {
+        name: 'menu.approvals.list',
+        key: 'approvals/list',
+      },
+    ],
+  },
+  // 系统设置
+  {
+    name: 'menu.settings',
+    key: 'settings',
+    children: [
+      {
+        name: 'menu.settings.cost',
+        key: 'settings/cost',
+      },
+      {
+        name: 'menu.settings.approval',
+        key: 'settings/approval',
+      },
+    ],
+  },
 ];
 
 export const getName = (path: string, routes) => {

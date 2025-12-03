@@ -27,6 +27,25 @@ const i18n = {
     'menu.user.role.admin': '管理员',
     'menu.user.role.user': '普通用户',
     'menu.dashboard.workplace': '工作台',
+    // 商业项目管理
+    'menu.projects': '商业项目',
+    'menu.projects.list': '项目列表',
+    'menu.projects.create': '创建项目',
+    'menu.projects.detail': '项目详情',
+    // 业绩管理
+    'menu.performance': '业绩管理',
+    'menu.performance.list': '业绩列表',
+    // 任务和工时管理
+    'menu.tasks': '任务和工时',
+    'menu.tasks.list': '任务列表',
+    'menu.tasks.calendar': '工时日历',
+    // 审批管理
+    'menu.approvals': '审批管理',
+    'menu.approvals.list': '审批列表',
+    // 系统设置
+    'menu.settings': '系统设置',
+    'menu.settings.cost': '人日成本设置',
+    'menu.settings.approval': '审批流程设置',
     'navbar.logout': '退出登录',
     'settings.title': '页面配置',
     'settings.themeColor': '主题色',
