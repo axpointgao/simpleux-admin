@@ -90,6 +90,24 @@ function SearchForm({ onSearch }: SearchFormProps) {
               </Select>
             </Form.Item>
           </Col>
+          <Col span={colSpan}>
+            <Form.Item label="客户部" field="clientDept">
+              <Select placeholder="请选择客户部" mode="multiple" allowClear>
+                <Select.Option value="金融客户部">金融客户部</Select.Option>
+                <Select.Option value="电商客户部">电商客户部</Select.Option>
+                <Select.Option value="企业客户部">企业客户部</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={colSpan}>
+            <Form.Item label="项目经理" field="manager">
+              <Select placeholder="请选择项目经理" mode="multiple" allowClear>
+                <Select.Option value="张三">张三</Select.Option>
+                <Select.Option value="李四">李四</Select.Option>
+                <Select.Option value="王五">王五</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
       </Form>
     </div>

@@ -252,30 +252,84 @@ export function getColumns(
       width: 100,
       fixed: 'right' as const,
       render: (_: any, record: Project) => {
-        const menu = (
-          <Menu>
-            <Menu.Item key="view" onClick={() => callback(record, 'view')}>
-              查看详情
+        // 根据业务规则构建菜单项
+        const menuItems: React.ReactNode[] = [];
+
+        // 项目变更：非归档、非待补录标记的项目
+        if (record.status !== '已归档' && !record.isPendingEntry) {
+          menuItems.push(
+            <Menu.Item
+              key="change"
+              onClick={(e) => {
+                e.stopPropagation(); // 阻止事件冒泡，避免触发行点击
+                callback(record, 'change');
+              }}
+            >
+              项目变更
             </Menu.Item>
-            <Menu.Item key="edit" onClick={() => callback(record, 'edit')}>
-              编辑
+          );
+        }
+
+        // 补录申请：待补录标记的计件制项目（已归档除外）
+        if (
+          record.isPendingEntry &&
+          record.type === '计件制' &&
+          record.status !== '已归档'
+        ) {
+          menuItems.push(
+            <Menu.Item
+              key="pendingEntry"
+              onClick={(e) => {
+                e.stopPropagation();
+                callback(record, 'pendingEntry');
+              }}
+            >
+              提交补录申请
             </Menu.Item>
-            <Menu.Item key="delete" onClick={() => callback(record, 'delete')}>
-              删除
-            </Menu.Item>
-          </Menu>
-        );
+          );
+        }
+
+        // 如果没有菜单项，不显示下拉菜单
+        if (menuItems.length === 0) {
+          return (
+            <Space>
+              <Button
+                type="text"
+                size="small"
+                icon={<IconEdit />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  callback(record, 'updateProgress');
+                }}
+                title="更新进度"
+              />
+            </Space>
+          );
+        }
+
+        const menu = <Menu>{menuItems}</Menu>;
+
         return (
           <Space>
             <Button
               type="text"
               size="small"
               icon={<IconEdit />}
-              onClick={() => callback(record, 'updateProgress')}
+              onClick={(e) => {
+                e.stopPropagation();
+                callback(record, 'updateProgress');
+              }}
               title="更新进度"
             />
             <Dropdown droplist={menu} trigger="click" position="br">
-              <Button type="text" size="small" icon={<IconMore />} />
+              <Button
+                type="text"
+                size="small"
+                icon={<IconMore />}
+                onClick={(e) => {
+                  e.stopPropagation(); // 阻止事件冒泡
+                }}
+              />
             </Dropdown>
           </Space>
         );

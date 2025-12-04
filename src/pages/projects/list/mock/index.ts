@@ -282,3 +282,49 @@ export function getProjectById(id: string): Promise<Project> {
     }, 300);
   });
 }
+
+// 获取项目预算数据
+export function getProjectBudgets(projectId: string): Promise<{
+  labor: any[];
+  travel: any[];
+  outsource: any[];
+}> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Mock 数据
+      resolve({
+        labor: [],
+        travel: [],
+        outsource: [],
+      });
+    }, 200);
+  });
+}
+
+// 获取项目支出数据
+export function getProjectExpenses(projectId: string): Promise<{
+  labor: any[];
+  travel: any[];
+  outsource: any[];
+}> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Mock 数据
+      resolve({
+        labor: [],
+        travel: [],
+        outsource: [],
+      });
+    }, 200);
+  });
+}
+
+// 获取项目变更记录
+export function getProjectChanges(projectId: string): Promise<any[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Mock 数据
+      resolve([]);
+    }, 200);
+  });
+}

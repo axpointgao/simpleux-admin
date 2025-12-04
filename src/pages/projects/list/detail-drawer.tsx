@@ -34,9 +34,15 @@ import {
   ProjectExpenseOutsource,
   ProjectChange,
 } from '@/types';
-import { getProjectById } from './mock';
+import {
+  getProjectById,
+  getProjectBudgets,
+  getProjectExpenses,
+  getProjectChanges,
+} from './mock';
 import dayjs from 'dayjs';
 import styles from './detail-drawer.module.less';
+import StageProgressModal from './stage-progress-modal';
 
 const { Title, Text } = Typography;
 
@@ -65,6 +71,26 @@ function ProjectDetailDrawer({
 }: ProjectDetailDrawerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stageModalVisible, setStageModalVisible] = useState(false);
+  const [laborBudgetData, setLaborBudgetData] = useState<ProjectBudgetLabor[]>(
+    []
+  );
+  const [laborExpenseData, setLaborExpenseData] = useState<
+    ProjectExpenseLabor[]
+  >([]);
+  const [travelBudgetData, setTravelBudgetData] = useState<
+    ProjectBudgetTravel[]
+  >([]);
+  const [travelExpenseData, setTravelExpenseData] = useState<
+    ProjectExpenseTravel[]
+  >([]);
+  const [outsourceBudgetData, setOutsourceBudgetData] = useState<
+    ProjectBudgetOutsource[]
+  >([]);
+  const [outsourceExpenseData, setOutsourceExpenseData] = useState<
+    ProjectExpenseOutsource[]
+  >([]);
+  const [changeData, setChangeData] = useState<ProjectChange[]>([]);
 
   useEffect(() => {
     if (visible && projectId) {
@@ -80,6 +106,23 @@ function ProjectDetailDrawer({
     try {
       const data = await getProjectById(projectId);
       setProject(data);
+
+      // 获取预算和支出数据
+      if (data) {
+        const [budgets, expenses, changes] = await Promise.all([
+          getProjectBudgets(projectId),
+          getProjectExpenses(projectId),
+          getProjectChanges(projectId),
+        ]);
+
+        setLaborBudgetData(budgets.labor || []);
+        setTravelBudgetData(budgets.travel || []);
+        setOutsourceBudgetData(budgets.outsource || []);
+        setLaborExpenseData(expenses.labor || []);
+        setTravelExpenseData(expenses.travel || []);
+        setOutsourceExpenseData(expenses.outsource || []);
+        setChangeData(changes || []);
+      }
     } catch (error) {
       console.error('获取项目详情失败:', error);
     } finally {
@@ -190,199 +233,273 @@ function ProjectDetailDrawer({
 
   // 处理更新进度
   const handleUpdateProgress = () => {
-    Message.info('更新进度功能开发中');
-    // TODO: 打开更新进度弹窗
+    if (project && project.stages && project.stages.length > 0) {
+      setStageModalVisible(true);
+    } else {
+      Message.warning('项目暂无阶段信息');
+    }
   };
 
-  // 人力预算表格列
+  // 处理阶段进度确认
+  const handleStageProgressConfirm = async (updatedStages: ProjectStage[]) => {
+    if (!project) return;
+    try {
+      // TODO: 调用API更新阶段进度
+      console.log('更新阶段进度:', updatedStages);
+
+      // 更新项目数据
+      setProject({
+        ...project,
+        stages: updatedStages,
+        progress: updatedStages.reduce((sum, stage) => {
+          return sum + (stage.percentage * stage.completionPercentage) / 100;
+        }, 0),
+      });
+
+      Message.success('进度更新成功');
+      setStageModalVisible(false);
+    } catch (error) {
+      console.error('更新进度失败:', error);
+      Message.error('更新进度失败，请重试');
+    }
+  };
+
+  // 人力预算表格列（严格按照数据库表结构：project_budgets_labor）
+  // 注意：dataIndex 使用 camelCase（与 TypeScript 接口一致），但对应数据库字段为 snake_case
   const laborBudgetColumns = [
-    { title: '员工级别', dataIndex: 'employeeLevel', width: 120 },
+    {
+      title: '员工级别',
+      dataIndex: 'employeeLevel', // 对应数据库字段：employee_level (text, NOT NULL)
+      width: 120,
+    },
     {
       title: '城市类型',
-      dataIndex: 'cityType',
+      dataIndex: 'cityType', // 对应数据库字段：city_type (text, NOT NULL)
       width: 100,
       render: (v: string) => (v === 'Chengdu' ? '成都' : '杭州'),
     },
     {
       title: '人日数',
-      dataIndex: 'days',
+      dataIndex: 'days', // 对应数据库字段：days (numeric(10,2), NOT NULL)
       width: 100,
       render: (v: number) => v.toFixed(2),
     },
     {
       title: '单价（元/人日）',
-      dataIndex: 'unitCost',
+      dataIndex: 'unitCost', // 对应数据库字段：unit_cost (numeric(10,2), NOT NULL)
       width: 120,
       render: (v: number) => v.toFixed(2),
     },
     {
       title: '总价（元）',
-      dataIndex: 'totalCost',
+      dataIndex: 'totalCost', // 对应数据库字段：total_cost (numeric(15,2), NOT NULL) = days * unit_cost
       width: 120,
       render: (v: number) => formatAmount(v),
     },
   ];
 
-  // 人力支出表格列
+  // 人力支出表格列（严格按照数据库表结构：project_expenses_labor）
+  // 注意：dataIndex 使用 camelCase（与 TypeScript 接口一致），但对应数据库字段为 snake_case
   const laborExpenseColumns = [
-    { title: '员工姓名', dataIndex: 'employeeName', width: 120 },
-    { title: '员工级别', dataIndex: 'employeeLevel', width: 100 },
-    { title: '工作日期', dataIndex: 'workDate', width: 120 },
+    {
+      title: '员工姓名',
+      dataIndex: 'employeeName', // 对应数据库字段：employee_name (text, NOT NULL)
+      width: 120,
+    },
+    {
+      title: '员工级别',
+      dataIndex: 'employeeLevel', // 对应数据库字段：employee_level (text, NOT NULL)
+      width: 100,
+    },
+    {
+      title: '工作日期',
+      dataIndex: 'workDate', // 对应数据库字段：work_date (date, NOT NULL)
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'),
+    },
+    {
+      title: '月份',
+      dataIndex: 'month', // 计算字段：从 workDate 提取的月份 (YYYY-MM)，用于统计展示，不在数据库表中
+      width: 100,
+      render: (v?: string) => v || '-',
+    },
     {
       title: '计划工时（小时）',
-      dataIndex: 'plannedHours',
+      dataIndex: 'plannedHours', // 可选字段，用于对比，不在数据库表中
       width: 120,
       render: (v?: number) => (v ? v.toFixed(2) : '-'),
     },
     {
       title: '实际工时（小时）',
-      dataIndex: 'hours',
+      dataIndex: 'hours', // 对应数据库字段：hours (numeric(10,2), NOT NULL)
       width: 120,
       render: (v: number) => v.toFixed(2),
     },
     {
-      title: '成本（元）',
-      dataIndex: 'calculatedCost',
+      title: '计算成本（元）',
+      dataIndex: 'calculatedCost', // 对应数据库字段：calculated_cost (numeric(15,2), NOT NULL) = hours/8 * daily_cost
       width: 120,
       render: (v: number) => formatAmount(v),
     },
   ];
 
-  // 差旅预算表格列
+  // 差旅预算表格列（严格按照数据库表结构：project_budgets_travel）
   const travelBudgetColumns = [
-    { title: '差旅事项', dataIndex: 'item', width: 200 },
+    { title: '差旅事项', dataIndex: 'item', width: 200 }, // item
     {
-      title: '大交通',
+      title: '大交通（元）',
       dataIndex: 'transportBig',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // transport_big (numeric(10,2), DEFAULT 0)
     },
     {
-      title: '住宿',
+      title: '住宿（元）',
       dataIndex: 'stay',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // stay (numeric(10,2), DEFAULT 0)
     },
     {
-      title: '小交通',
+      title: '小交通（元）',
       dataIndex: 'transportSmall',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // transport_small (numeric(10,2), DEFAULT 0)
     },
     {
-      title: '补助',
+      title: '补助（元）',
       dataIndex: 'allowance',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // allowance (numeric(10,2), DEFAULT 0)
     },
     {
-      title: '其他',
+      title: '其他（元）',
       dataIndex: 'other',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // other (numeric(10,2), DEFAULT 0)
     },
     {
       title: '总价（元）',
       dataIndex: 'totalCost',
       width: 120,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // total_cost (numeric(15,2)) = 各项费用之和
     },
   ];
 
-  // 差旅支出表格列
+  // 差旅支出表格列（严格按照数据库表结构：project_expenses_travel）
   const travelExpenseColumns = [
-    { title: '差旅事项', dataIndex: 'item', width: 150 },
-    { title: '支出日期', dataIndex: 'expenseDate', width: 120 },
+    { title: '差旅事项', dataIndex: 'item', width: 150 }, // item
+    {
+      title: '支出日期',
+      dataIndex: 'expenseDate',
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'), // expense_date (date)
+    },
     {
       title: '月份',
       dataIndex: 'month',
       width: 100,
-      render: (v?: string) => v || '-',
+      render: (v?: string) => v || '-', // 从 expenseDate 提取的月份 (YYYY-MM)
     },
     {
       title: '大交通',
       dataIndex: 'transportBig',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // transport_big (numeric(10,2))
     },
     {
       title: '住宿',
       dataIndex: 'stay',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // stay (numeric(10,2))
     },
     {
       title: '小交通',
       dataIndex: 'transportSmall',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // transport_small (numeric(10,2))
     },
     {
       title: '补助',
       dataIndex: 'allowance',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // allowance (numeric(10,2))
     },
     {
       title: '其他',
       dataIndex: 'other',
       width: 100,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // other (numeric(10,2))
     },
     {
-      title: '总金额',
+      title: '总金额（元）',
       dataIndex: 'totalAmount',
       width: 120,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // total_amount (numeric(15,2))
     },
   ];
 
-  // 外包预算表格列
+  // 外包预算表格列（严格按照数据库表结构：project_budgets_outsource）
   const outsourceBudgetColumns = [
-    { title: '外包事项', dataIndex: 'item', width: 200 },
-    { title: '供应商', dataIndex: 'supplierName', width: 150 },
+    { title: '外包事项', dataIndex: 'item', width: 200 }, // item
+    { title: '供应商', dataIndex: 'supplierName', width: 150 }, // supplier_name (可为NULL)
     {
       title: '金额（元）',
       dataIndex: 'amount',
       width: 120,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // amount (numeric(15,2))
     },
   ];
 
-  // 外包支出表格列
+  // 外包支出表格列（严格按照数据库表结构：project_expenses_outsource）
   const outsourceExpenseColumns = [
-    { title: '外包事项', dataIndex: 'item', width: 150 },
-    { title: '供应商', dataIndex: 'supplierName', width: 150 },
-    { title: '支出日期', dataIndex: 'expenseDate', width: 120 },
+    { title: '外包事项', dataIndex: 'item', width: 150 }, // item
+    { title: '供应商', dataIndex: 'supplierName', width: 150 }, // supplier_name (可为NULL)
+    {
+      title: '支出日期',
+      dataIndex: 'expenseDate',
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'), // expense_date (date)
+    },
     {
       title: '月份',
       dataIndex: 'month',
       width: 100,
-      render: (v?: string) => v || '-',
+      render: (v?: string) => v || '-', // 从 expenseDate 提取的月份 (YYYY-MM)
     },
     {
       title: '金额（元）',
       dataIndex: 'amount',
       width: 120,
-      render: (v: number) => formatAmount(v),
+      render: (v: number) => formatAmount(v), // amount (numeric(15,2))
     },
   ];
 
-  // 变更记录表格列
+  // 变更记录表格列（严格按照数据库表结构：project_changes）
   const changeColumns = [
-    { title: '变更日期', dataIndex: 'changeDate', width: 120 },
+    {
+      title: '变更日期',
+      dataIndex: 'changeDate',
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'), // change_date (date, NOT NULL)
+    },
     {
       title: '变更类型',
       dataIndex: 'changeType',
       width: 100,
-      render: (v: string) => (v === 'project' ? '项目变更' : '需求变更'),
+      render: (v: string) => (v === 'project' ? '项目变更' : '需求变更'), // change_type (project/demand, NOT NULL)
     },
-    { title: '变更说明', dataIndex: 'description', width: 200 },
+    { title: '变更说明', dataIndex: 'description', width: 200 }, // description (text, NOT NULL)
+    {
+      title: '变更金额',
+      dataIndex: 'contractAmount',
+      width: 120,
+      render: (v?: number) => (v ? formatAmount(v) : '-'), // contract_amount (numeric(15,2), 可为NULL)
+    },
     {
       title: '审批状态',
       dataIndex: 'approvalStatus',
       width: 100,
       render: (v: string) => {
+        // 审批状态从关联的审批记录获取（approval_id → approvals表）
         const statusMap: Record<string, { text: string; color: string }> = {
           pending: { text: '待审批', color: 'orange' },
           approved: { text: '已通过', color: 'green' },
@@ -393,15 +510,6 @@ function ProjectDetailDrawer({
       },
     },
   ];
-
-  // Mock 数据（后续从 API 获取）
-  const mockLaborBudgetData: ProjectBudgetLabor[] = [];
-  const mockLaborExpenseData: ProjectExpenseLabor[] = [];
-  const mockTravelBudgetData: ProjectBudgetTravel[] = [];
-  const mockTravelExpenseData: ProjectExpenseTravel[] = [];
-  const mockOutsourceBudgetData: ProjectBudgetOutsource[] = [];
-  const mockOutsourceExpenseData: ProjectExpenseOutsource[] = [];
-  const mockChangeData: ProjectChange[] = [];
 
   return (
     <Drawer
@@ -519,7 +627,7 @@ function ProjectDetailDrawer({
                     value: project.bizManager || '-',
                   },
                   {
-                    label: '客户部',
+                    label: '客户部', // 对应数据库 client_dept (text, NULL)
                     value: project.clientDept || '-',
                   },
                   {
@@ -783,7 +891,7 @@ function ProjectDetailDrawer({
                   </Title>
                   <Table
                     columns={laborBudgetColumns}
-                    data={mockLaborBudgetData}
+                    data={laborBudgetData}
                     pagination={false}
                     noDataElement="暂无数据"
                   />
@@ -796,7 +904,7 @@ function ProjectDetailDrawer({
                 </Title>
                 <Table
                   columns={laborExpenseColumns}
-                  data={mockLaborExpenseData}
+                  data={laborExpenseData}
                   pagination={false}
                   noDataElement="暂无数据"
                 />
@@ -813,7 +921,7 @@ function ProjectDetailDrawer({
                   </Title>
                   <Table
                     columns={travelBudgetColumns}
-                    data={mockTravelBudgetData}
+                    data={travelBudgetData}
                     pagination={false}
                     noDataElement="暂无数据"
                   />
@@ -826,7 +934,7 @@ function ProjectDetailDrawer({
                 </Title>
                 <Table
                   columns={travelExpenseColumns}
-                  data={mockTravelExpenseData}
+                  data={travelExpenseData}
                   pagination={false}
                   noDataElement="暂无数据"
                 />
@@ -843,7 +951,7 @@ function ProjectDetailDrawer({
                   </Title>
                   <Table
                     columns={outsourceBudgetColumns}
-                    data={mockOutsourceBudgetData}
+                    data={outsourceBudgetData}
                     pagination={false}
                     noDataElement="暂无数据"
                   />
@@ -856,7 +964,7 @@ function ProjectDetailDrawer({
                 </Title>
                 <Table
                   columns={outsourceExpenseColumns}
-                  data={mockOutsourceExpenseData}
+                  data={outsourceExpenseData}
                   pagination={false}
                   noDataElement="暂无数据"
                 />
@@ -867,7 +975,7 @@ function ProjectDetailDrawer({
             <Tabs.TabPane key="changes" title="变更记录">
               <Table
                 columns={changeColumns}
-                data={mockChangeData}
+                data={changeData}
                 pagination={false}
                 noDataElement="暂无数据"
               />
@@ -875,6 +983,16 @@ function ProjectDetailDrawer({
           </Tabs>
         )}
       </Spin>
+
+      {/* 阶段进度管理弹窗 */}
+      {project && project.stages && (
+        <StageProgressModal
+          visible={stageModalVisible}
+          stages={project.stages}
+          onClose={() => setStageModalVisible(false)}
+          onConfirm={handleStageProgressConfirm}
+        />
+      )}
     </Drawer>
   );
 }

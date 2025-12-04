@@ -32,22 +32,16 @@ function ProjectList() {
   const history = useHistory();
 
   const tableCallback = async (record: Project, type: string) => {
-    if (type === 'view') {
-      setSelectedProjectId(record.id);
-      setDetailVisible(true);
-    } else if (type === 'edit') {
-      history.push(`/projects/create?id=${record.id}`);
-    } else if (type === 'delete') {
-      Modal.confirm({
-        title: '确认删除',
-        content: `确定要删除项目"${record.name}"吗？`,
-        onOk: async () => {
-          // TODO: 调用删除API
-          Message.success('删除成功');
-          fetchData();
-        },
-      });
+    if (type === 'change') {
+      // 项目变更
+      // TODO: 打开项目变更弹窗或跳转到项目变更页面
+      Message.info('项目变更功能开发中');
+    } else if (type === 'pendingEntry') {
+      // 提交补录申请
+      // TODO: 打开补录申请弹窗或跳转到补录申请页面
+      Message.info('提交补录申请功能开发中');
     } else if (type === 'updateProgress') {
+      // 更新进度
       // TODO: 打开更新进度弹窗
       Message.info('更新进度功能开发中');
     }
@@ -197,6 +191,13 @@ function ProjectList() {
         pagination={pagination}
         columns={columns}
         data={data}
+        onRow={(record) => ({
+          onClick: () => {
+            setSelectedProjectId(record.id);
+            setDetailVisible(true);
+          },
+          style: { cursor: 'pointer' },
+        })}
       />
       <ProjectDetailDrawer
         visible={detailVisible}

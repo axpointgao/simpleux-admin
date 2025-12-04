@@ -20,23 +20,23 @@ export interface Project {
   name: string; // 项目名称
   type: ProjectType; // 项目类型（项目制/计件制/离岸制/驻场制）
   status: ProjectStatus; // 项目状态（待启动/进行中/待确认/已确认/已归档）
-  isPendingEntry: boolean; // 待补录标记
-  managerId: string; // 项目经理ID (uuid)
-  managerName: string; // 项目经理姓名
-  group: string; // 归属部门
-  bizManager?: string; // 商务经理
-  clientDept?: string; // 归属客户部
-  planStartDate: string; // 计划开始日期 (date)
-  planEndDate: string; // 计划结束日期 (date)
-  actualStartDate?: string; // 实际开始日期 (date)
-  actualEndDate?: string; // 实际结束日期 (date)
-  progress: number; // 项目进度（0-100）
-  contractAmount: number; // 业绩金额（合同金额）(numeric(15,2))
-  completedAmount?: number; // 完成金额（进度 × 业绩金额，项目制/计件制自动计算）
-  acceptedAmount?: number; // 验收金额
-  demandCode?: string; // 需求编号（计件制专用）
-  demandName?: string; // 需求名称（计件制专用）
-  frameworkId?: string; // 框架协议ID（计件制专用）
+  isPendingEntry: boolean; // 待补录标记 对应数据库 is_pending_entry (boolean, NOT NULL, DEFAULT false)
+  managerId: string; // 项目经理ID 对应数据库 manager_id (uuid, FK → profiles.id, NOT NULL)
+  managerName: string; // 项目经理姓名 对应数据库 manager_name (text, NOT NULL)
+  group: string; // 归属部门 对应数据库 group (text, NOT NULL)
+  bizManager?: string; // 商务经理 对应数据库 biz_manager (text, NULL)
+  clientDept?: string; // 客户部 对应数据库 client_dept (text, NULL)
+  planStartDate: string; // 计划开始日期 对应数据库 plan_start_date (date, NOT NULL)
+  planEndDate: string; // 计划结束日期 对应数据库 plan_end_date (date, NOT NULL)
+  actualStartDate?: string; // 实际开始日期 对应数据库 actual_start_date (date, NULL)
+  actualEndDate?: string; // 实际结束日期 对应数据库 actual_end_date (date, NULL)
+  progress: number; // 项目进度（0-100）对应数据库 progress (integer, NOT NULL, DEFAULT 0)
+  contractAmount: number; // 业绩金额 对应数据库 contract_amount (numeric(15,2), NOT NULL, DEFAULT 0)
+  completedAmount?: number; // 完成金额（进度 × 业绩金额，项目制/计件制自动计算）- 计算字段，不在数据库表中
+  acceptedAmount?: number; // 验收金额 - 计算字段，不在数据库表中
+  demandCode?: string; // 需求编号 对应数据库 demand_code (text, NULL)
+  demandName?: string; // 需求名称 对应数据库 demand_name (text, NULL)
+  frameworkId?: string; // 框架协议ID 对应数据库 framework_id (uuid, FK → framework_agreements.id, NULL)
   frameworkName?: string; // 框架协议名称（主项目名称，计件制专用）
   // 预算和支出汇总（用于列表显示）
   laborBudgetTotal?: number; // 人力预算总额（元）
@@ -47,9 +47,9 @@ export interface Project {
   outsourceExpenseTotal?: number; // 外包支出总额（元）
   estimatedProfitRate?: number; // 预估利润率（%）
   actualProfitRate?: number; // 实际利润率（%）
-  createdBy: string; // 创建人ID (uuid)
-  createdAt: string; // 创建时间 (timestamp)
-  updatedAt: string; // 更新时间 (timestamp)
+  createdBy: string; // 创建人ID 对应数据库 created_by (uuid, FK → profiles.id, NOT NULL)
+  createdAt: string; // 创建时间 对应数据库 created_at (timestamp, NOT NULL, DEFAULT now())
+  updatedAt: string; // 更新时间 对应数据库 updated_at (timestamp, NOT NULL, DEFAULT now())
   // 阶段信息（项目制/计件制）
   stages?: ProjectStage[]; // 阶段列表
 }
