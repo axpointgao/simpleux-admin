@@ -1,0 +1,95 @@
+.container {
+  overflow: hidden;
+  padding: 20px;
+  padding-bottom: 100px; // 为底部固定操作栏留出空间
+
+  :global(.arco-card-body) {
+    padding: 20px 20px 10px;
+  }
+
+  :global(.arco-card) {
+    margin-bottom: 16px;
+  }
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.type-cards {
+  margin-top: 0;
+  row-gap: 24px;
+}
+
+.type-card {
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 0;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 10%);
+  }
+
+  :global(.arco-card-body) {
+    padding: 16px 20px;
+  }
+}
+
+.type-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.type-card-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.type-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-1);
+  line-height: 24px;
+}
+
+.type-card-desc {
+  font-size: 14px;
+  color: var(--color-text-3);
+  line-height: 20px;
+  margin: 0;
+}
+
+.form-group {
+  :global(.arco-card-body) {
+    padding: 20px 20px 10px;
+  }
+
+  :global(.arco-card) {
+    margin-bottom: 16px;
+  }
+}
+
+.actions {
+  padding: 12px 40px;
+  background-color: var(--color-bg-2);
+  display: flex;
+  flex-direction: row-reverse;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: 0 -3px 12px rgb(0 0 0 / 10%);
+  z-index: 50; // 低于导航栏（z-index: 100）和侧边栏（z-index: 99），但高于普通内容元素
+}

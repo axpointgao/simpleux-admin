@@ -1,0 +1,23 @@
+export default {
+  'zh-CN': {
+    'projects.create.title': '创建项目',
+    'projects.create.editTitle': '编辑项目',
+    'projects.create.basicInfo': '基本信息',
+    'projects.create.budget': '预算录入',
+    'projects.create.stages': '阶段配置',
+    'projects.create.submit': '提交审批',
+    'projects.create.type': '项目类型',
+    'projects.create.name': '项目名称',
+    'projects.create.demandName': '需求名称',
+    'projects.create.demandCode': '需求编号',
+    'projects.create.manager': '项目经理',
+    'projects.create.group': '归属部门',
+    'projects.create.bizManager': '商务经理',
+    'projects.create.clientDept': '客户部',
+    'projects.create.planStartDate': '计划开始日期',
+    'projects.create.planEndDate': '计划结束日期',
+    'projects.create.contractAmount': '业绩金额',
+    'projects.create.framework': '框架协议',
+    'projects.create.isPendingEntry': '是否待补录',
+  },
+};
