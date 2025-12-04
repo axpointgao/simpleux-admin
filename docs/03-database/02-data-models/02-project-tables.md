@@ -20,16 +20,16 @@
 | manager_name | text | NOT NULL | 项目经理姓名 |
 | group | text | NOT NULL | 归属部门 |
 | biz_manager | text | NULL | 商务经理 |
-| client_dept | text | NULL | 归属客户部 |
+| client_dept | text | NULL | 客户部 |
 | plan_start_date | date | NOT NULL | 计划开始日期 |
 | plan_end_date | date | NOT NULL | 计划结束日期 |
 | actual_start_date | date | NULL | 实际开始日期 |
 | actual_end_date | date | NULL | 实际结束日期 |
 | progress | integer | NOT NULL, DEFAULT 0 | 项目进度（0-100） |
-| contract_amount | numeric(15,2) | NOT NULL, DEFAULT 0 | 合同金额（业绩金额） |
-| demand_code | text | NULL | 需求编号（计件制专用） |
-| demand_name | text | NULL | 需求名称（计件制专用） |
-| framework_id | uuid | FK → framework_agreements.id, NULL | 框架协议ID（计件制专用） |
+| contract_amount | numeric(15,2) | NOT NULL, DEFAULT 0 | 业绩金额 |
+| demand_code | text | NULL | 需求编号 |
+| demand_name | text | NULL | 需求名称 |
+| framework_id | uuid | FK → framework_agreements.id, NULL | 框架协议ID |
 | created_by | uuid | FK → profiles.id, NOT NULL | 创建人ID |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
@@ -65,10 +65,10 @@
 | code | text | NOT NULL, UNIQUE | 框架协议编号（FRAM-YYYY-XXX） |
 | name | text | NOT NULL | 主项目名称 |
 | manager_id | uuid | FK → profiles.id, NOT NULL | 项目经理ID |
-| manager_name | text | NOT NULL | 项目经理姓名 |
+| manager_name | text | NOT NULL | 项目经理 |
 | biz_manager | text | NULL | 商务经理 |
 | group | text | NOT NULL | 归属部门 |
-| client_dept | text | NULL | 归属客户部 |
+| client_dept | text | NULL | 客户部 |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
 
@@ -94,8 +94,8 @@
 |--------|------|------|------|
 | id | uuid | PK | 预算ID |
 | project_id | uuid | FK → projects.id, NOT NULL | 项目ID |
-| employee_level | text | NOT NULL | 员工级别（P0-P9, M0-M5） |
-| city_type | text | NOT NULL | 城市类型（Chengdu/Hangzhou） |
+| employee_level | text | NOT NULL | 级别（P0-P9, M0-M5） |
+| city_type | text | NOT NULL | 类型（Chengdu/Hangzhou） |
 | days | numeric(10,2) | NOT NULL | 人日数 |
 | unit_cost | numeric(10,2) | NOT NULL | 单价（从成本标准获取） |
 | total_cost | numeric(15,2) | NOT NULL | 总价（days * unit_cost） |
@@ -121,11 +121,11 @@
 | id | uuid | PK | 预算ID |
 | project_id | uuid | FK → projects.id, NOT NULL | 项目ID |
 | item | text | NOT NULL | 差旅事项 |
-| transport_big | numeric(10,2) | NOT NULL, DEFAULT 0 | 大交通费用 |
-| stay | numeric(10,2) | NOT NULL, DEFAULT 0 | 住宿费用 |
-| transport_small | numeric(10,2) | NOT NULL, DEFAULT 0 | 小交通费用 |
-| allowance | numeric(10,2) | NOT NULL, DEFAULT 0 | 补助费用 |
-| other | numeric(10,2) | NOT NULL, DEFAULT 0 | 其他费用 |
+| transport_big | numeric(10,2) | NOT NULL, DEFAULT 0 | 大交通 |
+| stay | numeric(10,2) | NOT NULL, DEFAULT 0 | 住宿 |
+| transport_small | numeric(10,2) | NOT NULL, DEFAULT 0 | 小交通 |
+| allowance | numeric(10,2) | NOT NULL, DEFAULT 0 | 补助 |
+| other | numeric(10,2) | NOT NULL, DEFAULT 0 | 其他 |
 | total_cost | numeric(15,2) | NOT NULL | 总价（各项费用之和） |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
@@ -175,9 +175,9 @@
 | id | uuid | PK | 支出ID |
 | project_id | uuid | FK → projects.id, NOT NULL | 项目ID |
 | employee_id | uuid | FK → profiles.id, NOT NULL | 员工ID |
-| employee_name | text | NOT NULL | 员工姓名 |
-| employee_level | text | NOT NULL | 员工级别 |
-| work_date | date | NOT NULL | 工作日期 |
+| employee_name | text | NOT NULL | 姓名 |
+| employee_level | text | NOT NULL | 级别 |
+| work_date | date | NOT NULL | 统计月份 |
 | hours | numeric(10,2) | NOT NULL | 工时（小时） |
 | calculated_cost | numeric(15,2) | NOT NULL | 计算成本（hours/8 * daily_cost） |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
@@ -204,12 +204,12 @@
 | id | uuid | PK | 支出ID |
 | project_id | uuid | FK → projects.id, NOT NULL | 项目ID |
 | item | text | NOT NULL | 差旅事项 |
-| expense_date | date | NOT NULL | 支出日期 |
-| transport_big | numeric(10,2) | NOT NULL, DEFAULT 0 | 大交通费用 |
-| stay | numeric(10,2) | NOT NULL, DEFAULT 0 | 住宿费用 |
-| transport_small | numeric(10,2) | NOT NULL, DEFAULT 0 | 小交通费用 |
-| allowance | numeric(10,2) | NOT NULL, DEFAULT 0 | 补助费用 |
-| other | numeric(10,2) | NOT NULL, DEFAULT 0 | 其他费用 |
+| expense_date | date | NOT NULL | 统计月份 |
+| transport_big | numeric(10,2) | NOT NULL, DEFAULT 0 | 大交通 |
+| stay | numeric(10,2) | NOT NULL, DEFAULT 0 | 住宿 |
+| transport_small | numeric(10,2) | NOT NULL, DEFAULT 0 | 小交通 |
+| allowance | numeric(10,2) | NOT NULL, DEFAULT 0 | 补助 |
+| other | numeric(10,2) | NOT NULL, DEFAULT 0 | 其他 |
 | total_amount | numeric(15,2) | NOT NULL | 总金额（各项费用之和） |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
@@ -236,7 +236,7 @@
 | supplier_id | uuid | FK → suppliers.id, NULL | 供应商ID |
 | supplier_name | text | NULL | 供应商名称 |
 | amount | numeric(15,2) | NOT NULL | 金额 |
-| expense_date | date | NOT NULL | 支出日期 |
+| expense_date | date | NOT NULL | 统计月份 |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
 

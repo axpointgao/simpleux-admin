@@ -92,8 +92,8 @@
 | task_id | uuid | FK → tasks.id, NOT NULL | 任务ID |
 | month | date | NOT NULL | 月份（格式：YYYY-MM-01） |
 | employee_id | uuid | FK → profiles.id, NOT NULL | 员工ID |
-| employee_name | text | NOT NULL | 员工姓名 |
-| employee_level | text | NOT NULL | 员工级别 |
+| employee_name | text | NOT NULL | 姓名 |
+| employee_level | text | NOT NULL | 级别 |
 | actual_hours | numeric(10,2) | NOT NULL | 实际工时（从任务工时获取） |
 | cost_subtotal | numeric(15,2) | NOT NULL | 成本小计（自动计算） |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
@@ -121,11 +121,11 @@
 | opportunity_id | uuid | FK → opportunities.id, NOT NULL | 商机ID |
 | month | date | NOT NULL | 月份（格式：YYYY-MM-01） |
 | item | text | NOT NULL | 出差事项 |
-| transport_big | numeric(10,2) | NOT NULL, DEFAULT 0 | 大交通费用 |
-| stay | numeric(10,2) | NOT NULL, DEFAULT 0 | 住宿费用 |
-| transport_small | numeric(10,2) | NOT NULL, DEFAULT 0 | 小交通费用 |
-| allowance | numeric(10,2) | NOT NULL, DEFAULT 0 | 补助费用 |
-| other | numeric(10,2) | NOT NULL, DEFAULT 0 | 其他费用 |
+| transport_big | numeric(10,2) | NOT NULL, DEFAULT 0 | 大交通 |
+| stay | numeric(10,2) | NOT NULL, DEFAULT 0 | 住宿 |
+| transport_small | numeric(10,2) | NOT NULL, DEFAULT 0 | 小交通 |
+| allowance | numeric(10,2) | NOT NULL, DEFAULT 0 | 补助 |
+| other | numeric(10,2) | NOT NULL, DEFAULT 0 | 其他 |
 | travel_subtotal | numeric(15,2) | NOT NULL | 差旅小计（自动计算） |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |

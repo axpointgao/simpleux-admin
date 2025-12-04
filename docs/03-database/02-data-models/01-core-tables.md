@@ -13,13 +13,13 @@
 | id | uuid | PK, FK → auth.users.id | 用户ID（关联Supabase Auth） |
 | dingtalk_user_id | text | UNIQUE, NULL | 钉钉用户ID |
 | name | text | NOT NULL | 用户姓名 |
-| employee_level | text | NOT NULL | 员工级别（P0-P9, M0-M5） |
+| employee_level | text | NOT NULL | 级别（P0-P9, M0-M5） |
 | position | text | NULL | 职位（交互/视觉/体验/管理） |
 | city_type | text | NULL | 城市类型（Chengdu/Hangzhou） |
 | department | text | NULL | 部门（从钉钉同步） |
 | status | text | NOT NULL, DEFAULT '在职' | 状态（在职/离职） |
 | daily_price | numeric(10,2) | NULL | 人日单价 |
-| daily_cost | numeric(10,2) | NULL | 人日成本（自动计算：daily_price * 21.75） |
+| daily_cost | numeric(10,2) | NULL | 人月成本（自动计算：daily_price * 21.75） |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
 
