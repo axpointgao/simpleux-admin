@@ -21,7 +21,6 @@ import {
   IconArchive,
   IconCheck,
   IconSettings,
-  IconPlus,
 } from '@arco-design/web-react/icon';
 import {
   Project,
@@ -42,7 +41,6 @@ import {
 } from './mock';
 import { useHistory } from 'react-router-dom';
 import dayjs from 'dayjs';
-import styles from './detail-drawer.module.less';
 import StageProgressModal from './stage-progress-modal';
 
 const { Title, Text } = Typography;

@@ -147,8 +147,8 @@ function ProjectList() {
 
   function handlePendingEntry(project: Project) {
     setDetailVisible(false);
-    // TODO: 打开补录申请弹窗或跳转到补录申请页面
-    Message.info('提交补录申请功能开发中');
+    // 跳转到补录申请页面
+    history.push(`/projects/pending-entry?id=${project.id}`);
   }
 
   const columns = useMemo(() => getColumns(t, tableCallback), [t]);

@@ -19,14 +19,13 @@ import {
   createFramework,
   updateFramework,
 } from '../list/mock';
-import { FrameworkAgreement } from '@/types/framework';
+import { getManagerName } from '@/utils/projectConstants';
 import styles from './style/index.module.less';
 
 function FrameworkCreate() {
   const history = useHistory();
   const formRef = useRef<FormInstance>();
   const [loading, setLoading] = useState(false);
-  const [framework, setFramework] = useState<FrameworkAgreement | null>(null);
 
   const params = qs.parseUrl(window.location.href).query;
   const frameworkId = params.id as string;
@@ -45,7 +44,6 @@ function FrameworkCreate() {
     try {
       const data = await getFrameworkById(frameworkId);
       if (data) {
-        setFramework(data);
         formRef.current?.setFieldsValue({
           name: data.name,
           managerId: data.managerId,
@@ -70,14 +68,9 @@ function FrameworkCreate() {
       setLoading(true);
 
       // 确保 managerName 有值（如果表单中没有，从 managerId 映射获取）
-      const managerNameMap: Record<string, string> = {
-        user1: '张三',
-        user2: '李四',
-        user3: '王五',
-      };
       const managerName =
         values.managerName ||
-        managerNameMap[values.managerId] ||
+        getManagerName(values.managerId) ||
         values.managerId;
 
       if (isEdit && frameworkId) {
@@ -147,12 +140,7 @@ function FrameworkCreate() {
                 placeholder="请选择项目经理"
                 onChange={(value) => {
                   // 根据 value 设置 managerName
-                  const managerNameMap: Record<string, string> = {
-                    user1: '张三',
-                    user2: '李四',
-                    user3: '王五',
-                  };
-                  const managerName = managerNameMap[value] || value;
+                  const managerName = getManagerName(value);
                   formRef.current?.setFieldsValue({
                     managerId: value,
                     managerName: managerName,

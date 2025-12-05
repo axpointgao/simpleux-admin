@@ -22,34 +22,14 @@ import { useHistory } from 'react-router-dom';
 import qs from 'query-string';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
 import { Project, ProjectType } from '@/types';
+import {
+  COST_MATRIX,
+  EMPLOYEE_LEVELS,
+  CITY_TYPES,
+  SUPPLIERS,
+} from '@/utils/projectConstants';
 import { getProjectById, getProjectBudgets } from '../list/mock';
 import styles from './style/index.module.less';
-
-// 人力成本矩阵（从配置中获取）
-const COST_MATRIX: Record<string, Record<string, number>> = {
-  P5: { Chengdu: 1000, Hangzhou: 1400 },
-  P6: { Chengdu: 1500, Hangzhou: 2000 },
-  P7: { Chengdu: 2200, Hangzhou: 2800 },
-  P8: { Chengdu: 3000, Hangzhou: 3800 },
-  M1: { Chengdu: 2500, Hangzhou: 3200 },
-  M2: { Chengdu: 3500, Hangzhou: 4500 },
-};
-
-// 员工级别选项
-const EMPLOYEE_LEVELS = ['P5', 'P6', 'P7', 'P8', 'M1', 'M2'];
-
-// 城市类型选项
-const CITY_TYPES = [
-  { label: '成都', value: 'Chengdu' },
-  { label: '杭州', value: 'Hangzhou' },
-];
-
-// Mock 供应商数据
-const SUPPLIERS = [
-  { id: 'supplier1', name: '供应商A' },
-  { id: 'supplier2', name: '供应商B' },
-  { id: 'supplier3', name: '供应商C' },
-];
 
 const { Title } = Typography;
 const { Row, Col } = Grid;
