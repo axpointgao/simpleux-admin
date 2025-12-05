@@ -293,6 +293,27 @@ function PageLayout() {
                       () => import('./pages/projects/create')
                     )}
                   />
+                  {/* 项目变更页 */}
+                  <Route
+                    path="/projects/change"
+                    component={lazyload(
+                      () => import('./pages/projects/change')
+                    )}
+                  />
+                  {/* 补录申请页 */}
+                  <Route
+                    path="/projects/pending-entry"
+                    component={lazyload(
+                      () => import('./pages/projects/pending-entry')
+                    )}
+                  />
+                  {/* 计件项目创建/编辑页 */}
+                  <Route
+                    path="/frameworks/create"
+                    component={lazyload(
+                      () => import('./pages/frameworks/create')
+                    )}
+                  />
                   <Route exact path="/">
                     <Redirect to={`/${defaultRoute}`} />
                   </Route>

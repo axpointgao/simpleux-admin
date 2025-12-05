@@ -79,6 +79,7 @@ function SearchForm({ onSearch }: SearchFormProps) {
                 <Select.Option value="已归档">
                   {t['projects.list.status.已归档']}
                 </Select.Option>
+                <Select.Option value="待补录">待补录</Select.Option>
               </Select>
             </Form.Item>
           </Col>

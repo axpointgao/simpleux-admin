@@ -169,6 +169,25 @@ export const routes: IRoute[] = [
         key: 'projects/detail',
         ignore: true,
       },
+      {
+        name: 'menu.projects.change',
+        key: 'projects/change',
+        ignore: true,
+      },
+      {
+        name: 'menu.projects.pendingEntry',
+        key: 'projects/pending-entry',
+        ignore: true,
+      },
+      {
+        name: 'menu.projects.frameworks',
+        key: 'frameworks/list',
+      },
+      {
+        name: 'menu.projects.frameworksCreate',
+        key: 'frameworks/create',
+        ignore: true,
+      },
     ],
   },
   // 业绩管理

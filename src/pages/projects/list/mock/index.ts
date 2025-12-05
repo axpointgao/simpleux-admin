@@ -213,6 +213,40 @@ export const mockProjects: Project[] = [
     createdAt: '2023-01-01T00:00:00Z',
     updatedAt: '2023-12-31T00:00:00Z',
   },
+  {
+    id: '7',
+    code: 'PROJ-2024-007',
+    name: 'XX待补录项目',
+    type: '计件制',
+    status: '进行中',
+    isPendingEntry: true, // 待补录标记
+    managerId: 'user2',
+    managerName: '王五',
+    group: '设计一部',
+    bizManager: '李四',
+    clientDept: '电商客户部',
+    planStartDate: '2024-05-01',
+    planEndDate: '2024-08-31',
+    progress: 40,
+    contractAmount: 0, // 待补录项目业绩金额为0
+    completedAmount: 0,
+    acceptedAmount: 0,
+    demandCode: 'DEM-2024-002',
+    demandName: '待补录需求设计',
+    frameworkId: 'fram1',
+    frameworkName: 'XX电商平台主项目',
+    laborBudgetTotal: 0, // 待补录项目预算为0
+    laborExpenseTotal: 0,
+    travelBudgetTotal: 0,
+    travelExpenseTotal: 0,
+    outsourceBudgetTotal: 0,
+    outsourceExpenseTotal: 0,
+    estimatedProfitRate: 0,
+    actualProfitRate: 0,
+    createdBy: 'user2',
+    createdAt: '2024-05-01T00:00:00Z',
+    updatedAt: '2024-05-15T00:00:00Z',
+  },
 ];
 
 // Mock API 函数
@@ -239,13 +273,40 @@ export function getProjects(
         );
       }
       if (params?.status && params.status.length > 0) {
-        filteredProjects = filteredProjects.filter((p) =>
-          params.status.includes(p.status)
+        // 处理待补录筛选（待补录不是状态，而是标记字段）
+        const hasPendingEntry = params.status.includes('待补录');
+        const otherStatuses = params.status.filter(
+          (s: string) => s !== '待补录'
         );
+
+        filteredProjects = filteredProjects.filter((p) => {
+          // 如果选择了待补录，筛选 isPendingEntry 为 true 的项目
+          if (hasPendingEntry && otherStatuses.length === 0) {
+            return p.isPendingEntry === true;
+          }
+          // 如果选择了待补录和其他状态，需要同时满足
+          if (hasPendingEntry && otherStatuses.length > 0) {
+            return (
+              p.isPendingEntry === true && otherStatuses.includes(p.status)
+            );
+          }
+          // 只选择了其他状态
+          return otherStatuses.includes(p.status);
+        });
       }
       if (params?.group && params.group.length > 0) {
         filteredProjects = filteredProjects.filter((p) =>
           params.group.includes(p.group)
+        );
+      }
+      if (params?.clientDept && params.clientDept.length > 0) {
+        filteredProjects = filteredProjects.filter((p) =>
+          params.clientDept.includes(p.clientDept || '')
+        );
+      }
+      if (params?.manager && params.manager.length > 0) {
+        filteredProjects = filteredProjects.filter((p) =>
+          params.manager.includes(p.managerName)
         );
       }
       // 归档项目筛选

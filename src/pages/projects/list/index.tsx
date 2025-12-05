@@ -22,6 +22,8 @@ import { getColumns } from './constants';
 import { getProjects } from './mock';
 import { Project } from '@/types';
 import ProjectDetailDrawer from './detail-drawer';
+import DesignConfirmModal from './design-confirm-modal';
+import ArchiveModal from './archive-modal';
 import './mock';
 import styles from './style/index.module.less';
 
@@ -33,13 +35,11 @@ function ProjectList() {
 
   const tableCallback = async (record: Project, type: string) => {
     if (type === 'change') {
-      // 项目变更
-      // TODO: 打开项目变更弹窗或跳转到项目变更页面
-      Message.info('项目变更功能开发中');
+      // 项目变更 - 跳转到变更页面
+      history.push(`/projects/change?id=${record.id}`);
     } else if (type === 'pendingEntry') {
-      // 提交补录申请
-      // TODO: 打开补录申请弹窗或跳转到补录申请页面
-      Message.info('提交补录申请功能开发中');
+      // 提交补录申请 - 跳转到补录申请页面
+      history.push(`/projects/pending-entry?id=${record.id}`);
     } else if (type === 'updateProgress') {
       // 更新进度
       // TODO: 打开更新进度弹窗
@@ -54,29 +54,93 @@ function ProjectList() {
 
   function handleProjectChange(project: Project) {
     setDetailVisible(false);
-    // TODO: 打开项目变更弹窗或跳转到项目变更页面
-    Message.info('项目变更功能开发中');
+    // 跳转到项目变更页面
+    history.push(`/projects/change?id=${project.id}`);
   }
 
   function handleDesignConfirm(project: Project) {
-    // TODO: 打开设计确认弹窗
-    Message.info('发起设计确认功能开发中');
+    setDesignConfirmProject(project);
+    setDesignConfirmVisible(true);
+  }
+
+  async function handleDesignConfirmSubmit(data: {
+    description?: string;
+    attachmentUrl: string;
+  }) {
+    if (!designConfirmProject) return;
+
+    try {
+      // TODO: 调用设计确认申请API
+      console.log('提交设计确认申请:', {
+        projectId: designConfirmProject.id,
+        ...data,
+      });
+
+      // 模拟API调用
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      Message.success('设计确认申请提交成功');
+      setDesignConfirmVisible(false);
+      setDesignConfirmProject(null);
+      // 刷新列表数据
+      fetchData();
+    } catch (error) {
+      Message.error('提交失败，请重试');
+      throw error;
+    }
   }
 
   function handleArchive(project: Project) {
-    // TODO: 打开归档弹窗
-    Message.info('发起归档功能开发中');
+    setArchiveProject(project);
+    setArchiveVisible(true);
+  }
+
+  async function handleArchiveSubmit(data: { description?: string }) {
+    if (!archiveProject) return;
+
+    try {
+      // TODO: 调用归档申请API
+      console.log('提交归档申请:', {
+        projectId: archiveProject.id,
+        ...data,
+      });
+
+      // 模拟API调用
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      Message.success('归档申请提交成功');
+      setArchiveVisible(false);
+      setArchiveProject(null);
+      // 刷新列表数据
+      fetchData();
+    } catch (error) {
+      Message.error('提交失败，请重试');
+      throw error;
+    }
   }
 
   function handleCancelArchive(project: Project) {
     Modal.confirm({
       title: '确认取消归档',
-      content: `确定要取消归档项目"${project.name}"吗？`,
+      content: `确定要取消归档项目"${
+        project.name || project.demandName
+      }"吗？取消归档后项目状态将变为"已确认"。`,
       onOk: async () => {
-        // TODO: 调用取消归档API
-        Message.success('取消归档成功');
-        setDetailVisible(false);
-        fetchData();
+        try {
+          // TODO: 调用取消归档API
+          console.log('取消归档:', {
+            projectId: project.id,
+          });
+
+          // 模拟API调用
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          Message.success('取消归档成功');
+          setDetailVisible(false);
+          fetchData();
+        } catch (error) {
+          Message.error('取消归档失败，请重试');
+        }
       },
     });
   }
@@ -85,11 +149,6 @@ function ProjectList() {
     setDetailVisible(false);
     // TODO: 打开补录申请弹窗或跳转到补录申请页面
     Message.info('提交补录申请功能开发中');
-  }
-
-  function handleEnterExpense(project: Project) {
-    // TODO: 打开录入支出弹窗或跳转到录入支出页面
-    Message.info('录入支出功能开发中');
   }
 
   const columns = useMemo(() => getColumns(t, tableCallback), [t]);
@@ -109,6 +168,11 @@ function ProjectList() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const [designConfirmVisible, setDesignConfirmVisible] = useState(false);
+  const [designConfirmProject, setDesignConfirmProject] =
+    useState<Project | null>(null);
+  const [archiveVisible, setArchiveVisible] = useState(false);
+  const [archiveProject, setArchiveProject] = useState<Project | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -208,7 +272,24 @@ function ProjectList() {
         onArchive={handleArchive}
         onCancelArchive={handleCancelArchive}
         onPendingEntry={handlePendingEntry}
-        onEnterExpense={handleEnterExpense}
+      />
+      <DesignConfirmModal
+        visible={designConfirmVisible}
+        project={designConfirmProject}
+        onClose={() => {
+          setDesignConfirmVisible(false);
+          setDesignConfirmProject(null);
+        }}
+        onConfirm={handleDesignConfirmSubmit}
+      />
+      <ArchiveModal
+        visible={archiveVisible}
+        project={archiveProject}
+        onClose={() => {
+          setArchiveVisible(false);
+          setArchiveProject(null);
+        }}
+        onConfirm={handleArchiveSubmit}
       />
     </Card>
   );

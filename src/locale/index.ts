@@ -32,6 +32,10 @@ const i18n = {
     'menu.projects.list': '项目列表',
     'menu.projects.create': '创建项目',
     'menu.projects.detail': '项目详情',
+    'menu.projects.change': '项目变更',
+    'menu.projects.pendingEntry': '补录申请',
+    'menu.projects.frameworks': '计件项目',
+    'menu.projects.frameworksCreate': '创建计件项目',
     // 业绩管理
     'menu.performance': '业绩管理',
     'menu.performance.list': '业绩列表',

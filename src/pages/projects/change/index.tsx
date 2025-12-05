@@ -1,5 +1,5 @@
 /**
- * 商业项目创建/编辑页面
+ * 商业项目变更页面
  */
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -14,27 +14,15 @@ import {
   Space,
   Grid,
   Message,
-  Divider,
-  Checkbox,
-  Modal,
+  Upload,
   Table,
-  Dropdown,
-  Menu,
 } from '@arco-design/web-react';
 import { FormInstance } from '@arco-design/web-react/es/Form';
 import { useHistory } from 'react-router-dom';
 import qs from 'query-string';
-import {
-  IconArrowLeft,
-  IconFolder,
-  IconFile,
-  IconCloud,
-  IconHome,
-  IconPlus,
-  IconDelete,
-  IconMore,
-} from '@arco-design/web-react/icon';
-import { ProjectType } from '@/types';
+import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
+import { Project, ProjectType } from '@/types';
+import { getProjectById, getProjectBudgets } from '../list/mock';
 import styles from './style/index.module.less';
 
 // 人力成本矩阵（从配置中获取）
@@ -56,32 +44,6 @@ const CITY_TYPES = [
   { label: '杭州', value: 'Hangzhou' },
 ];
 
-// Mock 阶段模板数据
-const STAGE_TEMPLATES = [
-  {
-    id: 'template1',
-    name: '标准项目模板',
-    type: 'project' as const,
-    stages: [
-      { id: 's1', name: '需求分析', percentage: 20 },
-      { id: 's2', name: '设计阶段', percentage: 30 },
-      { id: 's3', name: '开发阶段', percentage: 40 },
-      { id: 's4', name: '测试验收', percentage: 10 },
-    ],
-  },
-  {
-    id: 'template2',
-    name: '计件制模板',
-    type: 'piecework' as const,
-    stages: [
-      { id: 's1', name: '需求沟通', percentage: 20 },
-      { id: 's2', name: '原型设计', percentage: 40 },
-      { id: 's3', name: 'UI设计', percentage: 30 },
-      { id: 's4', name: '交付验收', percentage: 10 },
-    ],
-  },
-];
-
 // Mock 供应商数据
 const SUPPLIERS = [
   { id: 'supplier1', name: '供应商A' },
@@ -91,140 +53,80 @@ const SUPPLIERS = [
 
 const { Title } = Typography;
 const { Row, Col } = Grid;
-const { useForm } = Form;
 
-// 项目类型配置
-const projectTypes: Array<{
-  type: ProjectType;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  color: string;
-}> = [
-  {
-    type: '项目制',
-    title: '项目制',
-    description: '独立项目，有明确的业绩金额和交付周期',
-    icon: <IconFolder />,
-    color: '#165DFF', // blue
-  },
-  {
-    type: '计件制',
-    title: '计件制',
-    description: '基于计件项目的需求项，按件计费',
-    icon: <IconFile />,
-    color: '#00B42A', // green
-  },
-  {
-    type: '离岸制',
-    title: '离岸制',
-    description: '按人月结算，远程交付，按月录入业绩',
-    icon: <IconCloud />,
-    color: '#FF7D00', // orange
-  },
-  {
-    type: '驻场制',
-    title: '驻场制',
-    description: '驻点客户现场，按月结算，按月录入业绩',
-    icon: <IconHome />,
-    color: '#722ED1', // purple
-  },
-];
-
-function ProjectCreate() {
+function ProjectChange() {
   const history = useHistory();
   const formRef = useRef<FormInstance>();
-  const [projectType, setProjectType] = useState<ProjectType | ''>('');
-  const [isPendingEntry, setIsPendingEntry] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [typeModalVisible, setTypeModalVisible] = useState(false);
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectType, setProjectType] = useState<ProjectType | ''>('');
 
   const params = qs.parseUrl(window.location.href).query;
   const projectId = params.id as string;
-  const typeParam = params.type as ProjectType;
-  const isEdit = !!projectId;
 
-  // 如果是编辑模式或URL中有类型参数，直接设置类型
+  // 加载项目信息
   useEffect(() => {
-    if (isEdit || typeParam) {
-      if (typeParam) {
-        setProjectType(typeParam);
-        formRef.current?.setFieldsValue({ type: typeParam });
-      }
+    if (projectId) {
+      loadProjectData();
     } else {
-      // 创建模式，打开类型选择弹窗
-      setTypeModalVisible(true);
+      Message.error('缺少项目ID参数');
+      history.push('/projects/list');
     }
-  }, [isEdit, typeParam]);
+  }, [projectId]);
 
-  // 监听项目类型变化
-  const formType = Form.useWatch('type', formRef.current);
-  const formPendingEntry = Form.useWatch('isPendingEntry', formRef.current);
+  async function loadProjectData() {
+    try {
+      setLoading(true);
+      const projectData = await getProjectById(projectId);
+      setProject(projectData);
+      setProjectType(projectData.type);
 
-  useEffect(() => {
-    if (formType && formType !== projectType) {
-      setProjectType(formType);
+      // 加载预算数据
+      const budgets = await getProjectBudgets(projectId);
+
+      // 初始化表单
+      formRef.current?.setFieldsValue({
+        // 基本信息
+        name: projectData.name,
+        managerName: projectData.managerName,
+        group: projectData.group,
+        bizManager: projectData.bizManager,
+        clientDept: projectData.clientDept,
+        planStartDate: projectData.planStartDate,
+        planEndDate: projectData.planEndDate,
+        contractAmount: projectData.contractAmount,
+        // 计件制专用
+        demandName: projectData.demandName,
+        // 预算
+        laborBudget: budgets.labor || [],
+        travelBudget: budgets.travel || [],
+        outsourceBudget: budgets.outsource || [],
+        // 阶段
+        stages: projectData.stages || [],
+      });
+    } catch (error) {
+      Message.error('加载项目信息失败');
+      history.push('/projects/list');
+    } finally {
+      setLoading(false);
     }
-  }, [formType, projectType]);
-
-  useEffect(() => {
-    if (formPendingEntry !== undefined && formPendingEntry !== isPendingEntry) {
-      setIsPendingEntry(formPendingEntry);
-    }
-  }, [formPendingEntry, isPendingEntry]);
-
-  // 当项目类型确定后，初始化人力预算为一行（项目制/计件制非待补录）
-  useEffect(() => {
-    if (
-      formRef.current &&
-      (projectType === '项目制' ||
-        (projectType === '计件制' && !isPendingEntry))
-    ) {
-      const currentBudget = formRef.current.getFieldValue('laborBudget');
-      if (!currentBudget || currentBudget.length === 0) {
-        formRef.current.setFieldValue('laborBudget', [
-          {
-            employeeLevel: '',
-            cityType: '',
-            days: undefined,
-            unitCost: 0,
-            totalCost: 0,
-          },
-        ]);
-      }
-    }
-  }, [projectType, isPendingEntry]);
-
-  // 选择项目类型
-  function handleSelectType(type: ProjectType) {
-    setProjectType(type);
-    setTypeModalVisible(false);
-    // 设置表单默认值
-    formRef.current?.setFieldsValue({ type });
   }
 
-  // 取消选择类型
-  function handleCancelTypeSelection() {
-    setTypeModalVisible(false);
-    history.goBack();
-  }
-
-  // 提交
+  // 提交变更申请
   function handleSubmit() {
     formRef.current?.validate().then(
       async (values) => {
         // 根据业务规则进行额外验证
         const errors: string[] = [];
 
-        // 项目制/计件制（非待补录）：人力预算必填，至少一条记录，且每条记录必须完整
+        // 项目制/计件制：人力预算必填，至少一条记录，且每条记录必须完整
         if (
           projectType === '项目制' ||
-          (projectType === '计件制' && !values.isPendingEntry)
+          (projectType === '计件制' &&
+            values.laborBudget &&
+            values.laborBudget.length > 0)
         ) {
-          if (!values.laborBudget || values.laborBudget.length === 0) {
-            errors.push('人力预算至少需要一条记录');
-          } else {
-            // 验证每条记录是否完整
+          if (values.laborBudget && values.laborBudget.length > 0) {
             const incompleteRecords = values.laborBudget.filter(
               (item: any) =>
                 !item.employeeLevel ||
@@ -257,6 +159,18 @@ function ProjectCreate() {
           }
         }
 
+        // 变更说明和附件必填
+        if (!values.description) {
+          errors.push('变更说明为必填项');
+        }
+        if (
+          !values.attachmentUrl ||
+          (Array.isArray(values.attachmentUrl) &&
+            values.attachmentUrl.length === 0)
+        ) {
+          errors.push('变更附件为必填项');
+        }
+
         if (errors.length > 0) {
           Message.error(errors.join('；'));
           return;
@@ -264,45 +178,9 @@ function ProjectCreate() {
 
         setLoading(true);
         try {
-          // 自动生成项目编号（创建新项目时）
-          // 编号格式：PROJ-YYYYMMDD-XXXX
-          // YYYYMMDD：年月日（8位），XXXX：序号（4位，从0001开始）
-          // 注意：前端使用时间戳确保唯一性，实际生产环境应由后端从数据库查询同一天的最大序号+1
-          if (!isEdit && !values.code) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const dateStr = `${year}${month}${day}`;
-            // 使用时间戳毫秒数的后4位作为序号，确保唯一性
-            // 实际生产环境应该从数据库查询同一天的最大序号+1
-            const sequence = Date.now().toString().slice(-4).padStart(4, '0');
-            values.code = `PROJ-${dateStr}-${sequence}`;
-          }
-
-          // 自动生成需求编号（计件制项目）
-          // 编号格式：DEM-YYYYMMDD-XXXX
-          // YYYYMMDD：年月日（8位），XXXX：序号（4位，从0001开始）
-          // 注意：前端使用时间戳确保唯一性，实际生产环境应由后端从数据库查询同一天的最大序号+1
-          if (
-            projectType === '计件制' &&
-            values.demandName &&
-            !values.demandCode
-          ) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const dateStr = `${year}${month}${day}`;
-            // 使用时间戳毫秒数的后4位作为序号，确保唯一性
-            // 实际生产环境应该从数据库查询同一天的最大序号+1
-            const sequence = Date.now().toString().slice(-4).padStart(4, '0');
-            values.demandCode = `DEM-${dateStr}-${sequence}`;
-          }
-
-          // TODO: 调用创建/更新项目API
-          console.log('提交数据:', values);
-          Message.success(isEdit ? '项目更新成功' : '项目创建成功');
+          // TODO: 调用创建变更申请API
+          console.log('提交变更数据:', values);
+          Message.success('变更申请提交成功');
           setTimeout(() => {
             history.push('/projects/list');
           }, 1000);
@@ -324,7 +202,16 @@ function ProjectCreate() {
     history.goBack();
   }
 
-  // 表单页面
+  if (!project) {
+    return <div>加载中...</div>;
+  }
+
+  // 根据业务规则：计件制只支持需求变更，不显示框架协议信息
+  const isPiecework = projectType === '计件制';
+  const isProjectBased = projectType === '项目制';
+  const isOffshoreOrOnsite =
+    projectType === '离岸制' || projectType === '驻场制';
+
   return (
     <>
       <Form
@@ -335,265 +222,14 @@ function ProjectCreate() {
         wrapperCol={{ span: 16 }}
         className={styles['form-group']}
         initialValues={{
-          type: projectType || '',
-          status: '待启动',
-          isPendingEntry: false,
-          laborBudget:
-            projectType === '项目制' ||
-            (projectType === '计件制' && !isPendingEntry)
-              ? [
-                  {
-                    employeeLevel: '',
-                    cityType: '',
-                    days: undefined,
-                    unitCost: 0,
-                    totalCost: 0,
-                  },
-                ]
-              : [],
+          laborBudget: [],
           travelBudget: [],
           outsourceBudget: [],
           stages: [],
         }}
       >
-        {/* 计件制项目：主项目信息分组 */}
-        {projectType === '计件制' && (
-          <div className={styles['section-wrapper']}>
-            <Card>
-              <Title heading={6}>主项目信息</Title>
-              <Row gutter={24}>
-                <Col span={8}>
-                  <Form.Item
-                    label="计件项目"
-                    field="frameworkId"
-                    rules={[{ required: true, message: '请选择计件项目' }]}
-                  >
-                    <Select
-                      placeholder="请选择计件项目"
-                      showSearch
-                      allowClear
-                      onChange={async (value) => {
-                        if (!value) {
-                          // 清空计件项目时，清除相关信息
-                          formRef.current?.setFieldsValue({
-                            frameworkId: undefined,
-                            managerId: undefined,
-                            managerName: undefined,
-                            group: undefined,
-                            bizManager: undefined,
-                            clientDept: undefined,
-                          });
-                          return;
-                        }
-                        // 从计件项目 mock 数据中获取
-                        try {
-                          const { getFrameworkById } = await import(
-                            '../../frameworks/list/mock'
-                          );
-                          const framework = await getFrameworkById(value);
-                          if (framework) {
-                            formRef.current?.setFieldsValue({
-                              frameworkId: framework.id,
-                              managerId: framework.managerId,
-                              managerName: framework.managerName,
-                              group: framework.group,
-                              bizManager: framework.bizManager,
-                              clientDept: framework.clientDept,
-                            });
-                          }
-                        } catch (error) {
-                          console.error('获取计件项目失败:', error);
-                        }
-                      }}
-                      dropdownRender={(menu) => (
-                        <>
-                          {menu}
-                          <Divider style={{ margin: '4px 0' }} />
-                          <div style={{ padding: '4px 8px' }}>
-                            <Button
-                              type="text"
-                              long
-                              icon={<IconPlus />}
-                              onClick={() => {
-                                // 跳转到计件项目创建页面
-                                history.push('/frameworks/create');
-                              }}
-                            >
-                              创建计件项目
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                    >
-                      {/* 计件项目选项将从 mock 数据动态加载 */}
-                      <Select.Option value="fram1">
-                        XX电商平台主项目
-                      </Select.Option>
-                      <Select.Option value="fram2">
-                        XX金融系统主项目
-                      </Select.Option>
-                      <Select.Option value="fram3">
-                        XX企业服务平台主项目
-                      </Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                {/* 计件项目信息展示 - 只有选择了计件项目后才显示 */}
-                <Form.Item
-                  noStyle
-                  shouldUpdate={(prev, next) =>
-                    prev.frameworkId !== next.frameworkId
-                  }
-                >
-                  {() => {
-                    const frameworkId =
-                      formRef.current?.getFieldValue('frameworkId');
-                    if (!frameworkId) {
-                      return (
-                        <>
-                          <Col span={8}></Col>
-                          <Col span={8}></Col>
-                        </>
-                      );
-                    }
-                    const managerName =
-                      formRef.current?.getFieldValue('managerName');
-                    const group = formRef.current?.getFieldValue('group');
-
-                    return (
-                      <>
-                        <Col span={8}>
-                          <Form.Item label="项目经理">
-                            <span style={{ color: 'var(--color-text-1)' }}>
-                              {managerName || '-'}
-                            </span>
-                          </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                          <Form.Item label="归属部门">
-                            <span style={{ color: 'var(--color-text-1)' }}>
-                              {group || '-'}
-                            </span>
-                          </Form.Item>
-                        </Col>
-                      </>
-                    );
-                  }}
-                </Form.Item>
-              </Row>
-              {/* 第二行：商务经理和客户部 */}
-              <Form.Item
-                noStyle
-                shouldUpdate={(prev, next) =>
-                  prev.frameworkId !== next.frameworkId
-                }
-              >
-                {() => {
-                  const frameworkId =
-                    formRef.current?.getFieldValue('frameworkId');
-                  if (!frameworkId) {
-                    return null;
-                  }
-                  const bizManager =
-                    formRef.current?.getFieldValue('bizManager');
-                  const clientDept =
-                    formRef.current?.getFieldValue('clientDept');
-
-                  return (
-                    <Row gutter={24} style={{ marginTop: 16 }}>
-                      <Col span={8}>
-                        <Form.Item label="商务经理">
-                          <span style={{ color: 'var(--color-text-1)' }}>
-                            {bizManager || '-'}
-                          </span>
-                        </Form.Item>
-                      </Col>
-                      <Col span={8}>
-                        <Form.Item label="客户部">
-                          <span style={{ color: 'var(--color-text-1)' }}>
-                            {clientDept || '-'}
-                          </span>
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                  );
-                }}
-              </Form.Item>
-            </Card>
-          </div>
-        )}
-
-        {/* 计件制项目：需求信息分组 */}
-        {projectType === '计件制' && (
-          <div className={styles['section-wrapper']}>
-            <Card>
-              <Title heading={6}>需求信息</Title>
-              <Row gutter={24}>
-                <Col span={8}>
-                  <Form.Item
-                    label="需求名称"
-                    field="demandName"
-                    rules={[{ required: true, message: '请输入需求名称' }]}
-                  >
-                    <Input placeholder="请输入需求名称" />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="计划开始日期"
-                    field="planStartDate"
-                    rules={[{ required: true, message: '请选择计划开始日期' }]}
-                  >
-                    <DatePicker
-                      style={{ width: '100%' }}
-                      placeholder="请选择计划开始日期"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    label="计划结束日期"
-                    field="planEndDate"
-                    rules={[{ required: true, message: '请选择计划结束日期' }]}
-                  >
-                    <DatePicker
-                      style={{ width: '100%' }}
-                      placeholder="请选择计划结束日期"
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        )}
-
-        {/* 计件制项目：待补录分组 */}
-        {projectType === '计件制' && (
-          <div className={styles['section-wrapper']}>
-            <Card>
-              <Title heading={6}>其他信息</Title>
-              <Row gutter={24}>
-                <Col span={8}>
-                  <Form.Item
-                    label=""
-                    field="isPendingEntry"
-                    triggerPropName="checked"
-                    initialValue={false}
-                  >
-                    <Checkbox
-                      onChange={(checked) => setIsPendingEntry(checked)}
-                    >
-                      待补录
-                    </Checkbox>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        )}
-
-        {/* 非计件制项目：基本信息分组 */}
-        {projectType !== '计件制' && (
+        {/* 项目制：基本信息分组 */}
+        {isProjectBased && (
           <div className={styles['section-wrapper']}>
             <Card>
               <Title heading={6}>基本信息</Title>
@@ -610,14 +246,10 @@ function ProjectCreate() {
                 <Col span={8}>
                   <Form.Item
                     label="项目经理"
-                    field="managerId"
-                    rules={[{ required: true, message: '请选择项目经理' }]}
+                    field="managerName"
+                    rules={[{ required: true, message: '请输入项目经理' }]}
                   >
-                    <Select placeholder="请选择项目经理">
-                      <Select.Option value="user1">张三</Select.Option>
-                      <Select.Option value="user2">李四</Select.Option>
-                      <Select.Option value="user3">王五</Select.Option>
-                    </Select>
+                    <Input placeholder="请输入项目经理" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -660,68 +292,138 @@ function ProjectCreate() {
                     </Select>
                   </Form.Item>
                 </Col>
-                {/* 项目制：计划日期必填 */}
-                {projectType === '项目制' && (
-                  <>
-                    <Col span={8}>
-                      <Form.Item
-                        label="计划开始日期"
-                        field="planStartDate"
-                        rules={[
-                          { required: true, message: '请选择计划开始日期' },
-                        ]}
-                      >
-                        <DatePicker
-                          style={{ width: '100%' }}
-                          placeholder="请选择计划开始日期"
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                      <Form.Item
-                        label="计划结束日期"
-                        field="planEndDate"
-                        rules={[
-                          { required: true, message: '请选择计划结束日期' },
-                        ]}
-                      >
-                        <DatePicker
-                          style={{ width: '100%' }}
-                          placeholder="请选择计划结束日期"
-                        />
-                      </Form.Item>
-                    </Col>
-                  </>
-                )}
-                {/* 离岸制/驻场制：计划日期非必填 */}
-                {(projectType === '离岸制' || projectType === '驻场制') && (
-                  <>
-                    <Col span={8}>
-                      <Form.Item label="计划开始日期" field="planStartDate">
-                        <DatePicker
-                          style={{ width: '100%' }}
-                          placeholder="请选择计划开始日期（可选）"
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                      <Form.Item label="计划结束日期" field="planEndDate">
-                        <DatePicker
-                          style={{ width: '100%' }}
-                          placeholder="请选择计划结束日期（可选）"
-                        />
-                      </Form.Item>
-                    </Col>
-                  </>
-                )}
+                <Col span={8}>
+                  <Form.Item
+                    label="计划开始日期"
+                    field="planStartDate"
+                    rules={[{ required: true, message: '请选择计划开始日期' }]}
+                  >
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      placeholder="请选择计划开始日期"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="计划结束日期"
+                    field="planEndDate"
+                    rules={[{ required: true, message: '请选择计划结束日期' }]}
+                  >
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      placeholder="请选择计划结束日期"
+                    />
+                  </Form.Item>
+                </Col>
               </Row>
             </Card>
           </div>
         )}
 
-        {/* 预算录入分组（仅项目制/计件制，且非待补录） */}
-        {(projectType === '项目制' ||
-          (projectType === '计件制' && !isPendingEntry)) && (
+        {/* 计件制：需求信息分组 */}
+        {isPiecework && (
+          <div className={styles['section-wrapper']}>
+            <Card>
+              <Title heading={6}>需求信息</Title>
+              <Row gutter={24}>
+                <Col span={8}>
+                  <Form.Item
+                    label="需求名称"
+                    field="demandName"
+                    rules={[{ required: true, message: '请输入需求名称' }]}
+                  >
+                    <Input placeholder="请输入需求名称" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="计划开始日期"
+                    field="planStartDate"
+                    rules={[{ required: true, message: '请选择计划开始日期' }]}
+                  >
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      placeholder="请选择计划开始日期"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="计划结束日期"
+                    field="planEndDate"
+                    rules={[{ required: true, message: '请选择计划结束日期' }]}
+                  >
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      placeholder="请选择计划结束日期"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+          </div>
+        )}
+
+        {/* 离岸制/驻场制：基本信息分组（不包含商务经理和客户部） */}
+        {isOffshoreOrOnsite && (
+          <div className={styles['section-wrapper']}>
+            <Card>
+              <Title heading={6}>基本信息</Title>
+              <Row gutter={24}>
+                <Col span={8}>
+                  <Form.Item
+                    label="项目名称"
+                    field="name"
+                    rules={[{ required: true, message: '请输入项目名称' }]}
+                  >
+                    <Input placeholder="请输入项目名称" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="项目经理"
+                    field="managerName"
+                    rules={[{ required: true, message: '请输入项目经理' }]}
+                  >
+                    <Input placeholder="请输入项目经理" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="归属部门"
+                    field="group"
+                    rules={[{ required: true, message: '请选择归属部门' }]}
+                  >
+                    <Select placeholder="请选择归属部门">
+                      <Select.Option value="设计一部">设计一部</Select.Option>
+                      <Select.Option value="设计二部">设计二部</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item label="计划开始日期" field="planStartDate">
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      placeholder="请选择计划开始日期（可选）"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item label="计划结束日期" field="planEndDate">
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      placeholder="请选择计划结束日期（可选）"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+          </div>
+        )}
+
+        {/* 预算录入分组（仅项目制/计件制） */}
+        {(isProjectBased || isPiecework) && (
           <>
             {/* 人力预算 */}
             <div className={styles['section-wrapper']}>
@@ -735,12 +437,11 @@ function ProjectCreate() {
                       fontWeight: 'normal',
                     }}
                   >
-                    （必填，至少一条记录）
+                    （可选，如果修改预算，至少一条记录）
                   </span>
                 </Title>
                 <Form.List field="laborBudget" initialValue={[]}>
                   {(fields, { add, remove }) => {
-                    // 确保 fields 是数组
                     if (!Array.isArray(fields)) {
                       return null;
                     }
@@ -756,7 +457,7 @@ function ProjectCreate() {
                           </span>
                         ),
                         dataIndex: 'employeeLevel',
-                        width: 120,
+                        width: 150,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`laborBudget.${index}.employeeLevel`}
@@ -815,7 +516,7 @@ function ProjectCreate() {
                           </span>
                         ),
                         dataIndex: 'cityType',
-                        width: 120,
+                        width: 150,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`laborBudget.${index}.cityType`}
@@ -877,7 +578,7 @@ function ProjectCreate() {
                           </span>
                         ),
                         dataIndex: 'days',
-                        width: 120,
+                        width: 150,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`laborBudget.${index}.days`}
@@ -896,7 +597,7 @@ function ProjectCreate() {
                               precision={2}
                               min={0}
                               style={{ width: '100%' }}
-                              onChange={(value) => {
+                              onChange={() => {
                                 const employeeLevel =
                                   formRef.current?.getFieldValue(
                                     `laborBudget.${index}.employeeLevel`
@@ -904,10 +605,13 @@ function ProjectCreate() {
                                 const cityType = formRef.current?.getFieldValue(
                                   `laborBudget.${index}.cityType`
                                 );
-                                if (employeeLevel && cityType && value) {
+                                const days = formRef.current?.getFieldValue(
+                                  `laborBudget.${index}.days`
+                                );
+                                if (employeeLevel && cityType && days) {
                                   const unitCost =
                                     COST_MATRIX[employeeLevel]?.[cityType] || 0;
-                                  const totalCost = value * unitCost;
+                                  const totalCost = days * unitCost;
                                   setTimeout(() => {
                                     formRef.current?.setFieldValue(
                                       `laborBudget.${index}.unitCost`,
@@ -925,9 +629,9 @@ function ProjectCreate() {
                         ),
                       },
                       {
-                        title: '单价（元/人日）',
+                        title: '单价（元/天）',
                         dataIndex: 'unitCost',
-                        width: 140,
+                        width: 150,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`laborBudget.${index}.unitCost`}
@@ -956,7 +660,7 @@ function ProjectCreate() {
                       {
                         title: '总价（元）',
                         dataIndex: 'totalCost',
-                        width: 140,
+                        width: 150,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`laborBudget.${index}.totalCost`}
@@ -974,12 +678,7 @@ function ProjectCreate() {
                                 `laborBudget.${index}.totalCost`
                               );
                               return (
-                                <span
-                                  style={{
-                                    color: 'var(--color-text-1)',
-                                    fontWeight: 500,
-                                  }}
-                                >
+                                <span style={{ color: 'var(--color-text-2)' }}>
                                   {totalCost
                                     ? `${totalCost.toFixed(2)} 元`
                                     : '-'}
@@ -998,7 +697,6 @@ function ProjectCreate() {
                             status="danger"
                             icon={<IconDelete />}
                             onClick={() => remove(index)}
-                            disabled={fields.length === 1}
                           >
                             删除
                           </Button>
@@ -1014,6 +712,7 @@ function ProjectCreate() {
                           pagination={false}
                           border={{ wrapper: true, cell: true }}
                           style={{ marginBottom: 16 }}
+                          size="small"
                           noDataElement={
                             <div
                               style={{
@@ -1102,54 +801,16 @@ function ProjectCreate() {
                       {
                         title: '差旅事项',
                         dataIndex: 'item',
-                        width: 150,
+                        width: 200,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`travelBudget.${index}.item`}
                             rules={[
                               { required: true, message: '请输入差旅事项' },
-                              {
-                                validator: (value, callback) => {
-                                  const transportBig =
-                                    formRef.current?.getFieldValue(
-                                      `travelBudget.${index}.transportBig`
-                                    ) || 0;
-                                  const stay =
-                                    formRef.current?.getFieldValue(
-                                      `travelBudget.${index}.stay`
-                                    ) || 0;
-                                  const transportSmall =
-                                    formRef.current?.getFieldValue(
-                                      `travelBudget.${index}.transportSmall`
-                                    ) || 0;
-                                  const allowance =
-                                    formRef.current?.getFieldValue(
-                                      `travelBudget.${index}.allowance`
-                                    ) || 0;
-                                  const other =
-                                    formRef.current?.getFieldValue(
-                                      `travelBudget.${index}.other`
-                                    ) || 0;
-                                  const total =
-                                    transportBig +
-                                    stay +
-                                    transportSmall +
-                                    allowance +
-                                    other;
-                                  if (value && total === 0) {
-                                    callback('至少一项费用必须大于0');
-                                  } else {
-                                    callback();
-                                  }
-                                },
-                              },
                             ]}
                             noStyle
                           >
-                            <Input
-                              placeholder="请输入差旅事项"
-                              style={{ width: '100%' }}
-                            />
+                            <Input placeholder="请输入差旅事项" />
                           </Form.Item>
                         ),
                       },
@@ -1163,7 +824,7 @@ function ProjectCreate() {
                             noStyle
                           >
                             <InputNumber
-                              placeholder="请输入"
+                              placeholder="0"
                               precision={2}
                               min={0}
                               suffix="元"
@@ -1183,7 +844,7 @@ function ProjectCreate() {
                             noStyle
                           >
                             <InputNumber
-                              placeholder="请输入"
+                              placeholder="0"
                               precision={2}
                               min={0}
                               suffix="元"
@@ -1203,7 +864,7 @@ function ProjectCreate() {
                             noStyle
                           >
                             <InputNumber
-                              placeholder="请输入"
+                              placeholder="0"
                               precision={2}
                               min={0}
                               suffix="元"
@@ -1223,7 +884,7 @@ function ProjectCreate() {
                             noStyle
                           >
                             <InputNumber
-                              placeholder="请输入"
+                              placeholder="0"
                               precision={2}
                               min={0}
                               suffix="元"
@@ -1243,7 +904,7 @@ function ProjectCreate() {
                             noStyle
                           >
                             <InputNumber
-                              placeholder="请输入"
+                              placeholder="0"
                               precision={2}
                               min={0}
                               suffix="元"
@@ -1256,7 +917,7 @@ function ProjectCreate() {
                       {
                         title: '总价（元）',
                         dataIndex: 'totalCost',
-                        width: 140,
+                        width: 150,
                         render: (_, record, index) => (
                           <Form.Item
                             field={`travelBudget.${index}.totalCost`}
@@ -1274,12 +935,7 @@ function ProjectCreate() {
                                 `travelBudget.${index}.totalCost`
                               );
                               return (
-                                <span
-                                  style={{
-                                    color: 'var(--color-text-1)',
-                                    fontWeight: 500,
-                                  }}
-                                >
+                                <span style={{ color: 'var(--color-text-2)' }}>
                                   {totalCost
                                     ? `${totalCost.toFixed(2)} 元`
                                     : '-'}
@@ -1313,6 +969,7 @@ function ProjectCreate() {
                           pagination={false}
                           border={{ wrapper: true, cell: true }}
                           style={{ marginBottom: 16 }}
+                          size="small"
                           noDataElement={
                             <div
                               style={{
@@ -1377,10 +1034,7 @@ function ProjectCreate() {
                             ]}
                             noStyle
                           >
-                            <Input
-                              placeholder="请输入外包事项"
-                              style={{ width: '100%' }}
-                            />
+                            <Input placeholder="请输入外包事项" />
                           </Form.Item>
                         ),
                       },
@@ -1391,23 +1045,12 @@ function ProjectCreate() {
                         render: (_, record, index) => (
                           <Form.Item
                             field={`outsourceBudget.${index}.supplierName`}
+                            rules={[
+                              { required: true, message: '请输入供应商' },
+                            ]}
                             noStyle
                           >
-                            <Select
-                              placeholder="请选择供应商（可选）"
-                              allowClear
-                              showSearch
-                              style={{ width: '100%' }}
-                            >
-                              {SUPPLIERS.map((supplier) => (
-                                <Select.Option
-                                  key={supplier.id}
-                                  value={supplier.name}
-                                >
-                                  {supplier.name}
-                                </Select.Option>
-                              ))}
-                            </Select>
+                            <Input placeholder="请输入供应商" />
                           </Form.Item>
                         ),
                       },
@@ -1462,6 +1105,7 @@ function ProjectCreate() {
                           pagination={false}
                           border={{ wrapper: true, cell: true }}
                           style={{ marginBottom: 16 }}
+                          size="small"
                           noDataElement={
                             <div
                               style={{
@@ -1502,46 +1146,11 @@ function ProjectCreate() {
         )}
 
         {/* 交付计划分组（仅项目制/计件制） */}
-        {(projectType === '项目制' || projectType === '计件制') && (
+        {(isProjectBased || isPiecework) && (
           <div className={styles['section-wrapper']}>
             <Card>
               <Title heading={6}>交付计划</Title>
               <Row gutter={24}>
-                <Col span={8}>
-                  <Form.Item
-                    label="阶段模板"
-                    field="stageTemplateId"
-                    rules={[{ required: true, message: '请选择阶段模板' }]}
-                  >
-                    <Select
-                      placeholder="请选择阶段模板"
-                      onChange={(value) => {
-                        const template = STAGE_TEMPLATES.find(
-                          (t) => t.id === value
-                        );
-                        if (template) {
-                          // 自动填充阶段列表
-                          formRef.current?.setFieldsValue({
-                            stages: template.stages.map((stage) => ({
-                              name: stage.name,
-                              percentage: stage.percentage,
-                            })),
-                          });
-                        }
-                      }}
-                    >
-                      {STAGE_TEMPLATES.filter(
-                        (t) =>
-                          t.type ===
-                          (projectType === '项目制' ? 'project' : 'piecework')
-                      ).map((template) => (
-                        <Select.Option key={template.id} value={template.id}>
-                          {template.name}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
                 <Col span={8}>
                   <Form.Item
                     label="总占比"
@@ -1691,13 +1300,15 @@ function ProjectCreate() {
                         pagination={false}
                         border={{ wrapper: true, cell: true }}
                         style={{ marginBottom: 16 }}
+                        size="small"
                         noDataElement={
                           <div
                             style={{
-                              padding: '8px 0',
+                              padding: '4px 0',
                               textAlign: 'center',
                               color: 'var(--color-text-3)',
                               fontSize: '12px',
+                              lineHeight: '1.2',
                             }}
                           >
                             暂无数据
@@ -1727,9 +1338,8 @@ function ProjectCreate() {
           </div>
         )}
 
-        {/* 财务信息分组 - 放到最后 */}
-        {(projectType === '项目制' ||
-          (projectType === '计件制' && !isPendingEntry)) && (
+        {/* 财务信息分组 - 仅项目制/计件制 */}
+        {(isProjectBased || isPiecework) && (
           <div className={styles['section-wrapper']}>
             <Card className={styles['finance-card']}>
               <Title heading={6}>财务信息</Title>
@@ -1761,9 +1371,7 @@ function ProjectCreate() {
               {/* 实时计算预估利润和预估利润率 */}
               <Form.Item
                 shouldUpdate={(prev, next) => {
-                  // 监听业绩金额变化
                   if (prev.contractAmount !== next.contractAmount) return true;
-                  // 监听人力预算变化
                   const prevLabor = prev.laborBudget || [];
                   const nextLabor = next.laborBudget || [];
                   if (prevLabor.length !== nextLabor.length) return true;
@@ -1774,7 +1382,6 @@ function ProjectCreate() {
                     )
                   )
                     return true;
-                  // 监听差旅预算变化
                   const prevTravel = prev.travelBudget || [];
                   const nextTravel = next.travelBudget || [];
                   if (prevTravel.length !== nextTravel.length) return true;
@@ -1785,7 +1392,6 @@ function ProjectCreate() {
                     )
                   )
                     return true;
-                  // 监听外包预算变化
                   const prevOutsource = prev.outsourceBudget || [];
                   const nextOutsource = next.outsourceBudget || [];
                   if (prevOutsource.length !== nextOutsource.length)
@@ -1811,7 +1417,6 @@ function ProjectCreate() {
                   const outsourceBudget =
                     formRef.current?.getFieldValue('outsourceBudget') || [];
 
-                  // 计算总预算
                   const totalLaborBudget = laborBudget.reduce(
                     (sum: number, item: any) => sum + (item?.totalCost || 0),
                     0
@@ -1827,7 +1432,6 @@ function ProjectCreate() {
                   const totalBudget =
                     totalLaborBudget + totalTravelBudget + totalOutsourceBudget;
 
-                  // 计算预估利润和利润率
                   const estimatedProfit = contractAmount - totalBudget;
                   const estimatedProfitRate =
                     contractAmount > 0
@@ -1891,7 +1495,42 @@ function ProjectCreate() {
             </Card>
           </div>
         )}
+
+        {/* 变更说明和附件 */}
+        <div className={styles['section-wrapper']}>
+          <Card>
+            <Title heading={6}>变更说明</Title>
+            <Row gutter={24}>
+              <Col span={24}>
+                <Form.Item
+                  label="变更说明"
+                  field="description"
+                  rules={[{ required: true, message: '请输入变更说明' }]}
+                >
+                  <Input.TextArea
+                    placeholder="请详细说明变更原因和内容"
+                    rows={4}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={24}>
+                <Form.Item
+                  label="变更附件"
+                  field="attachmentUrl"
+                  rules={[{ required: true, message: '请上传变更附件' }]}
+                >
+                  <Upload
+                    action="/api/upload"
+                    limit={5}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+        </div>
       </Form>
+
       {/* 操作按钮 */}
       <div className={styles.actions}>
         <Space>
@@ -1904,54 +1543,12 @@ function ProjectCreate() {
             loading={loading}
             size="large"
           >
-            {isEdit ? '更新' : '提交审批'}
+            提交审批
           </Button>
         </Space>
       </div>
-
-      {/* 项目类型选择弹窗 */}
-      <Modal
-        title="选择项目类型"
-        visible={typeModalVisible}
-        onCancel={handleCancelTypeSelection}
-        footer={null}
-        style={{ width: 800 }}
-        maskClosable={false}
-        getPopupContainer={() => document.body}
-        maskStyle={{ zIndex: 3000 }}
-        wrapStyle={{ zIndex: 3000 }}
-      >
-        <Row gutter={24} className={styles['type-cards']}>
-          {projectTypes.map((item) => (
-            <Col xs={24} sm={12} key={item.type}>
-              <Card
-                className={styles['type-card']}
-                hoverable
-                onClick={() => handleSelectType(item.type)}
-              >
-                <div className={styles['type-card-content']}>
-                  <div
-                    className={styles['type-card-icon']}
-                    style={{ color: item.color }}
-                  >
-                    {item.icon}
-                  </div>
-                  <div className={styles['type-card-text']}>
-                    <div className={styles['type-card-title']}>
-                      {item.title}
-                    </div>
-                    <div className={styles['type-card-desc']}>
-                      {item.description}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Modal>
     </>
   );
 }
 
-export default ProjectCreate;
+export default ProjectChange;

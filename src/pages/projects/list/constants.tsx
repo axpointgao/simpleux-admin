@@ -120,6 +120,15 @@ export function getColumns(
       dataIndex: 'progress',
       width: 220,
       render: (_: any, record: Project) => {
+        const isOffshoreOrOnsite =
+          record.type === '离岸制' || record.type === '驻场制';
+
+        if (isOffshoreOrOnsite) {
+          // 离岸制/驻场制完全留白（计划日期非必填）
+          return null;
+        }
+
+        // 项目制/计件制显示日期和进度条
         const end = new Date(record.planEndDate);
         const now = new Date();
         const diff = end.getTime() - now.getTime();
@@ -132,7 +141,12 @@ export function getColumns(
         return (
           <div>
             <div
-              style={{ marginBottom: 4, fontSize: '12px', color: '#86909c' }}
+              style={{
+                marginBottom: 4,
+                fontSize: '12px',
+                color: '#86909c',
+                whiteSpace: 'nowrap',
+              }}
             >
               {record.planStartDate} ~ {record.planEndDate}
               <span
@@ -170,7 +184,17 @@ export function getColumns(
       dataIndex: 'contractAmount',
       width: 120,
       align: 'right' as const,
-      render: (amount: number) => {
+      render: (amount: number, record: Project) => {
+        // 待补录项目显示橙色"待补录"文字
+        if (record.isPendingEntry) {
+          return (
+            <div
+              style={{ fontSize: '14px', fontWeight: 500, color: '#ff7d00' }}
+            >
+              待补录
+            </div>
+          );
+        }
         if (!amount) return '-';
         const wan = amount / 10000;
         return (
@@ -192,7 +216,12 @@ export function getColumns(
 
         if (isNoBudgetType) {
           return (
-            <div style={{ color: actual > 0 ? '#00b42a' : '#86909c' }}>
+            <div
+              style={{
+                color: actual > 0 ? '#00b42a' : '#86909c',
+                fontWeight: 600,
+              }}
+            >
               {actual > 0 ? `${actual.toFixed(1)}%` : '-'}
             </div>
           );
@@ -207,7 +236,12 @@ export function getColumns(
             >
               预估: {estimated > 0 ? `${estimated.toFixed(1)}%` : '-'}
             </div>
-            <div style={{ color: actual > 0 ? '#00b42a' : '#86909c' }}>
+            <div
+              style={{
+                color: actual > 0 ? '#00b42a' : '#86909c',
+                fontWeight: 600,
+              }}
+            >
               实际: {actual > 0 ? `${actual.toFixed(1)}%` : '-'}
             </div>
           </div>
@@ -219,6 +253,15 @@ export function getColumns(
       dataIndex: 'costDetails',
       width: 200,
       render: (_: any, record: Project) => {
+        const isOffshoreOrOnsite =
+          record.type === '离岸制' || record.type === '驻场制';
+
+        if (isOffshoreOrOnsite) {
+          // 离岸制/驻场制不显示成本明细
+          return '-';
+        }
+
+        // 项目制/计件制显示成本明细
         return (
           <div style={{ fontSize: '12px', lineHeight: '20px' }}>
             <div>
@@ -241,6 +284,21 @@ export function getColumns(
                 record.outsourceBudgetTotal,
                 record.outsourceExpenseTotal
               )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: '商务',
+      dataIndex: 'bizManager',
+      width: 150,
+      render: (_: any, record: Project) => {
+        return (
+          <div>
+            <div style={{ marginBottom: 4 }}>{record.bizManager || '-'}</div>
+            <div style={{ fontSize: '12px', color: '#86909c' }}>
+              {record.clientDept || '-'}
             </div>
           </div>
         );
@@ -289,7 +347,17 @@ export function getColumns(
           );
         }
 
-        // 如果没有菜单项，不显示下拉菜单
+        // 标记阶段完成（更新进度）：非归档项目，项目制/计件制项目
+        const canUpdateProgress =
+          record.status !== '已归档' &&
+          (record.type === '项目制' || record.type === '计件制');
+
+        // 如果没有菜单项且不能更新进度，不显示任何按钮
+        if (menuItems.length === 0 && !canUpdateProgress) {
+          return null;
+        }
+
+        // 如果没有菜单项但可以更新进度，只显示更新进度按钮
         if (menuItems.length === 0) {
           return (
             <Space>
@@ -311,16 +379,18 @@ export function getColumns(
 
         return (
           <Space>
-            <Button
-              type="text"
-              size="small"
-              icon={<IconEdit />}
-              onClick={(e) => {
-                e.stopPropagation();
-                callback(record, 'updateProgress');
-              }}
-              title="更新进度"
-            />
+            {canUpdateProgress && (
+              <Button
+                type="text"
+                size="small"
+                icon={<IconEdit />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  callback(record, 'updateProgress');
+                }}
+                title="更新进度"
+              />
+            )}
             <Dropdown droplist={menu} trigger="click" position="br">
               <Button
                 type="text"

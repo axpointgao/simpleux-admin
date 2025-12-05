@@ -90,3 +90,46 @@ body[arco-theme='dark'] {
     }
   }
 }
+
+// ==================== 全局 Modal 和 Drawer 样式 ====================
+// 确保所有 Modal 弹窗的 z-index 始终高于 Drawer
+// 使用更高的 z-index 值（3000）确保 Modal 始终在 Drawer（1000）之上
+// 使用最高优先级的选择器确保样式能够覆盖内联样式
+:global {
+  // Drawer 的 z-index 固定为 1000
+  .arco-drawer-mask,
+  div[class*='arco-drawer-mask'],
+  div.arco-drawer-mask {
+    z-index: 1000 !important;
+  }
+
+  .arco-drawer-wrapper,
+  div[class*='arco-drawer-wrapper'],
+  div.arco-drawer-wrapper {
+    z-index: 1000 !important;
+  }
+
+  // Modal 的 z-index 设置为 3000，确保始终高于 Drawer
+  .arco-modal-mask,
+  div[class*='arco-modal-mask'],
+  div.arco-modal-mask,
+  [class*='arco-modal'][class*='mask'],
+  body > div[class*='arco-modal-mask'] {
+    z-index: 3000 !important;
+  }
+
+  .arco-modal-wrap,
+  div[class*='arco-modal-wrap'],
+  div.arco-modal-wrap,
+  [class*='arco-modal'][class*='wrap'],
+  body > div[class*='arco-modal-wrap'] {
+    z-index: 3000 !important;
+  }
+
+  // 确保 Modal 容器也在正确的层级
+  .arco-modal-container,
+  div[class*='arco-modal-container'],
+  div.arco-modal-container {
+    z-index: 3000 !important;
+  }
+}

@@ -40,6 +40,7 @@ import {
   getProjectExpenses,
   getProjectChanges,
 } from './mock';
+import { useHistory } from 'react-router-dom';
 import dayjs from 'dayjs';
 import styles from './detail-drawer.module.less';
 import StageProgressModal from './stage-progress-modal';
@@ -55,7 +56,6 @@ interface ProjectDetailDrawerProps {
   onArchive?: (project: Project) => void;
   onCancelArchive?: (project: Project) => void;
   onPendingEntry?: (project: Project) => void;
-  onEnterExpense?: (project: Project) => void;
 }
 
 function ProjectDetailDrawer({
@@ -67,8 +67,8 @@ function ProjectDetailDrawer({
   onArchive,
   onCancelArchive,
   onPendingEntry,
-  onEnterExpense,
 }: ProjectDetailDrawerProps) {
+  const history = useHistory();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [stageModalVisible, setStageModalVisible] = useState(false);
@@ -537,25 +537,16 @@ function ProjectDetailDrawer({
               <Button
                 type="primary"
                 icon={<IconSettings />}
-                onClick={() => onProjectChange?.(project)}
+                onClick={() => {
+                  history.push(`/projects/change?id=${project.id}`);
+                }}
               >
                 项目变更
               </Button>
             )}
-            {/* 发起设计确认：进行中/待确认、非离岸制/驻场制项目 */}
+            {/* 发起设计确认：进行中/待确认、非离岸制/驻场制项目
+                待补录标记的项目如果状态是"进行中"或"待确认"也可以发起设计确认 */}
             {(project.status === '进行中' || project.status === '待确认') &&
-              project.type !== '离岸制' &&
-              project.type !== '驻场制' && (
-                <Button
-                  icon={<IconCheck />}
-                  onClick={() => onDesignConfirm?.(project)}
-                >
-                  发起设计确认
-                </Button>
-              )}
-            {/* 待补录标记的项目如果状态是"进行中"或"待确认"也可以发起设计确认 */}
-            {project.isPendingEntry &&
-              (project.status === '进行中' || project.status === '待确认') &&
               project.type !== '离岸制' &&
               project.type !== '驻场制' && (
                 <Button
@@ -582,20 +573,12 @@ function ProjectDetailDrawer({
             )}
             {/* 提交补录申请：待补录标记的项目（已归档除外） */}
             {project.isPendingEntry && project.status !== '已归档' && (
-              <Button onClick={() => onPendingEntry?.(project)}>
-                提交补录申请
-              </Button>
-            )}
-            {/* 录入支出：待启动/进行中/待确认/已确认项目 */}
-            {(project.status === '待启动' ||
-              project.status === '进行中' ||
-              project.status === '待确认' ||
-              project.status === '已确认') && (
               <Button
-                icon={<IconPlus />}
-                onClick={() => onEnterExpense?.(project)}
+                onClick={() => {
+                  history.push(`/projects/pending-entry?id=${project.id}`);
+                }}
               >
-                录入支出
+                提交补录申请
               </Button>
             )}
           </Space>
@@ -667,7 +650,7 @@ function ProjectDetailDrawer({
                         value: project.demandName || '-',
                       },
                       {
-                        label: '框架协议',
+                        label: '计件项目',
                         value: project.frameworkName || '-',
                       },
                     ]}

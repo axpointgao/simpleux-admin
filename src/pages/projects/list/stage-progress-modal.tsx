@@ -259,6 +259,9 @@ function StageProgressModal({
       onOk={handleSubmit}
       confirmLoading={loading}
       style={{ width: 800 }}
+      getPopupContainer={() => document.body}
+      maskStyle={{ zIndex: 3000 }}
+      wrapStyle={{ zIndex: 3000 }}
     >
       <Form form={form} layout="vertical">
         <div style={{ marginBottom: 16 }}>
