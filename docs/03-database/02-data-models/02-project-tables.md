@@ -11,7 +11,7 @@
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
 | id | uuid | PK | 项目ID |
-| code | text | NOT NULL, UNIQUE | 项目编号（PROJ-YYYY-XXX） |
+| code | text | NOT NULL, UNIQUE | 项目编号（PROJ-YYYYMMDD-XXXX，自动生成） |
 | name | text | NOT NULL | 项目名称 |
 | type | text | NOT NULL | 项目类型（项目制/计件制/离岸制/驻场制） |
 | status | text | NOT NULL, DEFAULT '待启动' | 项目状态 |
@@ -27,9 +27,9 @@
 | actual_end_date | date | NULL | 实际结束日期 |
 | progress | integer | NOT NULL, DEFAULT 0 | 项目进度（0-100） |
 | contract_amount | numeric(15,2) | NOT NULL, DEFAULT 0 | 业绩金额 |
-| demand_code | text | NULL | 需求编号 |
+| demand_code | text | NULL | 需求编号（DEM-YYYYMMDD-XXXX，自动生成） |
 | demand_name | text | NULL | 需求名称 |
-| framework_id | uuid | FK → framework_agreements.id, NULL | 框架协议ID |
+| framework_id | uuid | FK → framework_agreements.id, NULL | 计件项目ID |
 | created_by | uuid | FK → profiles.id, NOT NULL | 创建人ID |
 | created_at | timestamp | NOT NULL, DEFAULT now() | 创建时间 |
 | updated_at | timestamp | NOT NULL, DEFAULT now() | 更新时间 |
@@ -53,16 +53,16 @@
 - 项目经理可以查看和管理自己的项目
 - 部门主管可以查看和管理本部门的项目
 
-### 1.2 framework_agreements（框架协议表）
+### 1.2 framework_agreements（计件项目表）
 
-**表说明**：存储框架协议（主项目）信息，用于计件制项目。
+**表说明**：存储计件项目（主项目）信息，用于计件制项目。
 
 **字段定义**：
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
-| id | uuid | PK | 框架协议ID |
-| code | text | NOT NULL, UNIQUE | 框架协议编号（FRAM-YYYY-XXX） |
+| id | uuid | PK | 计件项目ID |
+| code | text | NOT NULL, UNIQUE | 计件项目编号（FRAM-YYYYMMDD-XXXX，自动生成） |
 | name | text | NOT NULL | 主项目名称 |
 | manager_id | uuid | FK → profiles.id, NOT NULL | 项目经理ID |
 | manager_name | text | NOT NULL | 项目经理 |
@@ -79,8 +79,8 @@
 - INDEX idx_framework_agreements_manager_id (manager_id)
 
 **RLS策略**：
-- 用户可以根据部门权限查看框架协议
-- 部门主管可以创建和管理本部门的框架协议
+- 用户可以根据部门权限查看计件项目
+- 部门主管可以创建和管理本部门的计件项目
 
 ## 二、预算表
 

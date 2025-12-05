@@ -163,7 +163,7 @@
 
 **项目相关表**：
 - `projects`：项目主表
-- `framework_agreements`：框架协议表
+- `framework_agreements`：计件项目表
 - `project_budgets_labor`：项目人力预算表
 - `project_budgets_travel`：项目差旅预算表
 - `project_budgets_outsource`：项目外包预算表
