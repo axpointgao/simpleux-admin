@@ -1,0 +1,25 @@
+.search-form-wrapper {
+  display: flex;
+  border-bottom: 1px solid var(--color-border-1);
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.search-form {
+  padding-right: 20px;
+  width: 100%;
+
+  :global(.arco-form-label-item-left) {
+    > label {
+      white-space: nowrap;
+    }
+  }
+}
+
+// 按钮样式已移至全局样式 global.less
+// 所有主按钮使用 type="primary" 即可应用绿色主题

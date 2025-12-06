@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="https://unpkg.byted-static.com/latest/byted/arco-config/assets/favicon.ico"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>SimpleUX管理系统 - 企业数字化管理平台</title>
+    <script>
+      // 在页面加载的最早阶段抑制 ResizeObserver 错误
+      (function () {
+        const originalError = window.onerror;
+        const originalConsoleError = console.error;
+
+        // 重写 window.onerror
+        window.onerror = function (message, source, lineno, colno, error) {
+          const messageStr = String(message || '');
+          if (
+            messageStr.includes('ResizeObserver loop') ||
+            messageStr.includes('ResizeObserver loop limit exceeded') ||
+            messageStr.includes(
+              'ResizeObserver loop completed with undelivered notifications'
+            )
+          ) {
+            return true; // 抑制此错误
+          }
+          if (originalError) {
+            return originalError(message, source, lineno, colno, error);
+          }
+          return false;
+        };
+
+        // 重写 console.error
+        console.error = function (...args) {
+          const errorMessage = args.join(' ');
+          if (
+            errorMessage.includes('ResizeObserver loop') ||
+            errorMessage.includes('ResizeObserver loop limit exceeded') ||
+            errorMessage.includes(
+              'ResizeObserver loop completed with undelivered notifications'
+            )
+          ) {
+            return; // 不输出 ResizeObserver 相关错误
+          }
+          originalConsoleError.apply(console, args);
+        };
+
+        // 捕获错误事件
+        window.addEventListener(
+          'error',
+          function (e) {
+            const errorMessage = e.message || String(e.error || '');
+            if (
+              errorMessage.includes('ResizeObserver loop') ||
+              errorMessage.includes('ResizeObserver loop limit exceeded') ||
+              errorMessage.includes(
+                'ResizeObserver loop completed with undelivered notifications'
+              )
+            ) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+              return false;
+            }
+          },
+          true
+        );
+
+        // 捕获未处理的 Promise 拒绝
+        window.addEventListener('unhandledrejection', function (e) {
+          const errorMessage = e.reason?.message || String(e.reason || '');
+          if (
+            errorMessage.includes('ResizeObserver loop') ||
+            errorMessage.includes('ResizeObserver loop limit exceeded') ||
+            errorMessage.includes(
+              'ResizeObserver loop completed with undelivered notifications'
+            )
+          ) {
+            e.preventDefault();
+            return false;
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
