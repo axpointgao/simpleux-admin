@@ -1,0 +1,6 @@
+/* 纯 API 项目，不需要样式 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
