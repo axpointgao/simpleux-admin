@@ -12,8 +12,25 @@ export const COST_MATRIX: Record<string, Record<string, number>> = {
   M2: { Chengdu: 3500, Hangzhou: 4500 },
 };
 
-// 员工级别选项
-export const EMPLOYEE_LEVELS = ['P5', 'P6', 'P7', 'P8', 'M1', 'M2'];
+// 员工级别选项（完整列表）
+export const EMPLOYEE_LEVELS = [
+  'P0',
+  'P1',
+  'P2',
+  'P3',
+  'P4',
+  'P5',
+  'P6',
+  'P7',
+  'P8',
+  'P9',
+  'M0',
+  'M1',
+  'M2',
+  'M3',
+  'M4',
+  'M5',
+];
 
 // 城市类型选项
 export const CITY_TYPES = [

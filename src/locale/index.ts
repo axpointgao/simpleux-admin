@@ -48,6 +48,7 @@ const i18n = {
     'menu.approvals.list': '审批列表',
     // 系统设置
     'menu.settings': '系统设置',
+    'menu.settings.users': '用户管理',
     'menu.settings.cost': '人日成本设置',
     'menu.settings.approval': '审批流程设置',
     'navbar.logout': '退出登录',

@@ -132,11 +132,14 @@ function Index() {
   }
 
   useEffect(() => {
-    if (checkLogin()) {
-      fetchUserInfo();
-    } else if (window.location.pathname.replace(/\//g, '') !== 'login') {
-      window.location.pathname = '/login';
-    }
+    // 异步检查登录状态
+    checkLogin().then((isLoggedIn) => {
+      if (isLoggedIn) {
+        fetchUserInfo();
+      } else if (window.location.pathname.replace(/\//g, '') !== 'login') {
+        window.location.pathname = '/login';
+      }
+    });
   }, []);
 
   useEffect(() => {

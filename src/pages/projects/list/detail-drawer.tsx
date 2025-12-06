@@ -38,7 +38,7 @@ import {
   getProjectBudgets,
   getProjectExpenses,
   getProjectChanges,
-} from './mock';
+} from '@/api/projects';
 import { useHistory } from 'react-router-dom';
 import dayjs from 'dayjs';
 import StageProgressModal from './stage-progress-modal';
@@ -242,8 +242,9 @@ function ProjectDetailDrawer({
   const handleStageProgressConfirm = async (updatedStages: ProjectStage[]) => {
     if (!project) return;
     try {
-      // TODO: 调用API更新阶段进度
-      console.log('更新阶段进度:', updatedStages);
+      // 调用API更新阶段进度
+      const { updateStageProgress } = await import('@/api/projects');
+      await updateStageProgress(project.id, { stages: updatedStages });
 
       // 更新项目数据
       setProject({

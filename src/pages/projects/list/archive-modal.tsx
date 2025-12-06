@@ -58,7 +58,9 @@ function ArchiveModal({
     setDataLoading(true);
     try {
       // 动态导入，避免循环依赖
-      const { getProjectBudgets, getProjectExpenses } = await import('./mock');
+      const { getProjectBudgets, getProjectExpenses } = await import(
+        '@/api/projects'
+      );
       const [budgets, expenses] = await Promise.all([
         getProjectBudgets(project.id),
         getProjectExpenses(project.id),

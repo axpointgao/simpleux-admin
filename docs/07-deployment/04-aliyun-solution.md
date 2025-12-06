@@ -12,34 +12,38 @@
 
 ### 2.1 核心服务
 
-| 服务类型 | 阿里云服务 | 用途 | 预估成本 |
-|---------|-----------|------|---------|
-| 数据库 | RDS PostgreSQL | 数据存储 | 200-500元/月 |
-| 应用部署 | ECS | 应用服务器 | 200-800元/月 |
-| 文件存储 | OSS | 文件存储 | 50-200元/月（按使用量） |
-| CDN加速 | CDN | 静态资源加速 | 50-200元/月（按流量） |
-| 监控日志 | 云监控 + 日志服务 | 监控和日志 | 免费/50-100元/月 |
+| 服务类型 | 阿里云服务        | 用途         | 预估成本                 |
+| -------- | ----------------- | ------------ | ------------------------ |
+| 数据库   | RDS PostgreSQL    | 数据存储     | 200-500 元/月            |
+| 应用部署 | ECS               | 应用服务器   | 200-800 元/月            |
+| 文件存储 | OSS               | 文件存储     | 50-200 元/月（按使用量） |
+| CDN 加速 | CDN               | 静态资源加速 | 50-200 元/月（按流量）   |
+| 监控日志 | 云监控 + 日志服务 | 监控和日志   | 免费/50-100 元/月        |
 
-**总计：约 500-1800元/月**
+**总计：约 500-1800 元/月**
 
 ### 2.2 服务优势
 
 **访问速度**：
+
 - ✅ 所有服务都在国内，延迟低
 - ✅ 与钉钉（阿里产品）集成更方便
 - ✅ CDN 加速，静态资源加载快
 
 **付费方便**：
+
 - ✅ 支持支付宝、微信支付
 - ✅ 支持企业账户
 - ✅ 支持按量付费和包年包月
 
 **性能可靠**：
+
 - ✅ 阿里云在国内有完善的网络基础设施
 - ✅ 服务稳定，SLA 保证
 - ✅ 自动备份和恢复
 
 **性价比高**：
+
 - ✅ 价格合理，且有各种优惠活动
 - ✅ 按需购买，不浪费资源
 - ✅ 技术支持好（中文支持）
@@ -51,12 +55,14 @@
 **从 Supabase 迁移到阿里云 RDS PostgreSQL**：
 
 **变更内容**：
+
 - 数据库连接：从 Supabase 客户端改为 PostgreSQL 原生客户端（`pg`）
 - 认证服务：从 Supabase Auth 改为 NextAuth.js（支持钉钉 OAuth）
 - 权限控制：不使用 RLS，在应用层实现权限控制
 - 实时订阅：移除 Supabase Realtime（企业应用不需要）
 
 **迁移工作量**：
+
 - 数据库迁移：1-2 天（导出数据、导入数据、验证）
 - 代码适配：3-5 天（修改数据库连接、认证服务、文件存储）
 - 测试验证：2-3 天（功能测试、性能测试）
@@ -67,11 +73,13 @@
 **从 Supabase Storage 迁移到阿里云 OSS**：
 
 **变更内容**：
+
 - 文件上传：使用阿里云 OSS SDK
 - 文件访问：使用 OSS 的公开访问或签名 URL
 - 文件管理：通过 OSS 控制台或 SDK
 
 **迁移工作量**：
+
 - 代码适配：1-2 天
 - 文件迁移：根据文件数量，可能需要 1-3 天
 
@@ -80,11 +88,13 @@
 **从 Vercel 迁移到阿里云 ECS**：
 
 **变更内容**：
+
 - 部署方式：从 Vercel 自动部署改为 ECS 手动/CI-CD 部署
 - 反向代理：使用 Nginx 作为反向代理
 - SSL 证书：使用阿里云 SSL 证书或 Let's Encrypt
 
 **部署方式**：
+
 - 推荐：Docker 容器化部署
 - 或：传统服务器部署（使用 PM2）
 
@@ -93,6 +103,7 @@
 ### 4.1 数据库访问
 
 **变更前（Supabase）**：
+
 ```typescript
 import { createClient } from '@/lib/supabase/server';
 
@@ -101,6 +112,7 @@ const { data } = await supabase.from('projects').select('*');
 ```
 
 **变更后（PostgreSQL）**：
+
 ```typescript
 import { db } from '@/lib/db/client';
 
@@ -111,11 +123,15 @@ const data = result.rows;
 ### 4.2 认证服务
 
 **变更前（Supabase Auth）**：
+
 ```typescript
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 ```
 
 **变更后（NextAuth.js）**：
+
 ```typescript
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
@@ -127,6 +143,7 @@ const user = session?.user;
 ### 4.3 文件存储
 
 **变更前（Supabase Storage）**：
+
 ```typescript
 const { data } = await supabase.storage
   .from('bucket')
@@ -134,6 +151,7 @@ const { data } = await supabase.storage
 ```
 
 **变更后（阿里云 OSS）**：
+
 ```typescript
 import { ossClient } from '@/lib/storage/oss';
 
@@ -146,11 +164,13 @@ const url = result.url;
 ### 5.1 主要变更
 
 **移除的环境变量**：
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 **新增的环境变量**：
+
 - `DATABASE_URL`：PostgreSQL 连接字符串
 - `NEXTAUTH_SECRET`：NextAuth.js 密钥
 - `NEXTAUTH_URL`：应用 URL
@@ -163,13 +183,14 @@ const url = result.url;
 ### 5.2 环境变量模板
 
 **.env.example**：
+
 ```env
 # 数据库
 DATABASE_URL=postgresql://username:password@host:5432/database?sslmode=require
 
 # 认证
 NEXTAUTH_SECRET=your-secret-key-here
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3001
 
 # 钉钉 OAuth
 DINGTALK_APP_KEY=
@@ -184,7 +205,7 @@ ALIYUN_OSS_REGION=oss-cn-hangzhou
 ALIYUN_OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
 
 # 应用
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3001
 NODE_ENV=development
 ```
 
@@ -193,6 +214,7 @@ NODE_ENV=development
 ### 6.1 准备工作
 
 1. **注册阿里云账号**：
+
    - 访问 [阿里云官网](https://www.aliyun.com)
    - 完成实名认证
    - 选择支付方式（支付宝/微信支付）
@@ -206,16 +228,19 @@ NODE_ENV=development
 ### 6.2 数据库迁移
 
 1. **导出 Supabase 数据**（如果已有数据）：
+
 ```bash
 pg_dump -h supabase-host -U postgres -d database > backup.sql
 ```
 
 2. **导入到阿里云 RDS**：
+
 ```bash
 psql -h rds-host -U username -d database < backup.sql
 ```
 
 3. **执行数据库迁移脚本**：
+
 ```bash
 psql $DATABASE_URL -f supabase/migrations/001_initial_schema.sql
 ```
@@ -223,14 +248,17 @@ psql $DATABASE_URL -f supabase/migrations/001_initial_schema.sql
 ### 6.3 应用部署
 
 1. **配置环境变量**：
+
    - 在 ECS 实例中配置 `.env.production`
    - 或使用阿里云密钥管理服务（KMS）
 
 2. **部署应用**：
+
    - 使用 Docker 部署（推荐）
    - 或使用传统方式部署
 
 3. **配置 Nginx**：
+
    - 配置反向代理
    - 配置 SSL 证书
 
@@ -263,11 +291,13 @@ psql $DATABASE_URL -f supabase/migrations/001_initial_schema.sql
 ### 8.1 监控服务
 
 **阿里云云监控**（免费）：
+
 - 监控 ECS CPU、内存、磁盘使用率
 - 监控 RDS 连接数、查询性能
 - 配置告警规则（邮件、短信、钉钉）
 
 **阿里云应用实时监控服务 ARMS**（可选）：
+
 - 应用性能监控（APM）
 - 前端监控
 - 自定义监控指标
@@ -275,6 +305,7 @@ psql $DATABASE_URL -f supabase/migrations/001_initial_schema.sql
 ### 8.2 日志服务
 
 **阿里云日志服务 SLS**：
+
 - 日志采集、存储、查询、分析
 - 支持日志告警
 - 支持日志投递到 OSS（长期存储）
@@ -337,4 +368,3 @@ psql $DATABASE_URL -f supabase/migrations/001_initial_schema.sql
 6. **与钉钉集成好**：钉钉是阿里产品，集成更方便
 
 迁移复杂度：**中等**，预计 6-10 个工作日可以完成迁移。
-

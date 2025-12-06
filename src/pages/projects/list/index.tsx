@@ -19,12 +19,11 @@ import useLocale from '@/utils/useLocale';
 import SearchForm from './form';
 import locale from './locale';
 import { getColumns } from './constants';
-import { getProjects } from './mock';
+import { getProjects } from '@/api/projects';
 import { Project } from '@/types';
 import ProjectDetailDrawer from './detail-drawer';
 import DesignConfirmModal from './design-confirm-modal';
 import ArchiveModal from './archive-modal';
-import './mock';
 import styles from './style/index.module.less';
 
 const { Title } = Typography;
@@ -70,14 +69,8 @@ function ProjectList() {
     if (!designConfirmProject) return;
 
     try {
-      // TODO: 调用设计确认申请API
-      console.log('提交设计确认申请:', {
-        projectId: designConfirmProject.id,
-        ...data,
-      });
-
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { submitDesignConfirm } = await import('@/api/projects');
+      await submitDesignConfirm(designConfirmProject.id, data);
 
       Message.success('设计确认申请提交成功');
       setDesignConfirmVisible(false);
@@ -99,14 +92,8 @@ function ProjectList() {
     if (!archiveProject) return;
 
     try {
-      // TODO: 调用归档申请API
-      console.log('提交归档申请:', {
-        projectId: archiveProject.id,
-        ...data,
-      });
-
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { submitArchive } = await import('@/api/projects');
+      await submitArchive(archiveProject.id, data);
 
       Message.success('归档申请提交成功');
       setArchiveVisible(false);
@@ -127,13 +114,8 @@ function ProjectList() {
       }"吗？取消归档后项目状态将变为"已确认"。`,
       onOk: async () => {
         try {
-          // TODO: 调用取消归档API
-          console.log('取消归档:', {
-            projectId: project.id,
-          });
-
-          // 模拟API调用
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          const { cancelArchive } = await import('@/api/projects');
+          await cancelArchive(project.id);
 
           Message.success('取消归档成功');
           setDetailVisible(false);
@@ -174,14 +156,22 @@ function ProjectList() {
   const [archiveVisible, setArchiveVisible] = useState(false);
   const [archiveProject, setArchiveProject] = useState<Project | null>(null);
 
+  // 使用 useMemo 稳定 formParams 引用，避免不必要的请求
+  const stableFormParams = useMemo(
+    () => formParams,
+    [
+      formParams.name,
+      formParams.type,
+      formParams.status,
+      formParams.group,
+      formParams.clientDept,
+      formParams.manager,
+    ]
+  );
+
   useEffect(() => {
     fetchData();
-  }, [
-    pagination.current,
-    pagination.pageSize,
-    JSON.stringify(formParams),
-    showArchived,
-  ]);
+  }, [pagination.current, pagination.pageSize, stableFormParams, showArchived]);
 
   function fetchData() {
     const { current, pageSize } = pagination;

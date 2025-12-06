@@ -12,7 +12,7 @@ import {
 } from '@arco-design/web-react';
 import { IconEdit } from '@arco-design/web-react/icon';
 import { FrameworkAgreement } from '@/types/framework';
-import { getFrameworkById } from './mock';
+import { getFrameworkById } from '@/api/frameworks';
 
 const { Title } = Typography;
 

@@ -28,7 +28,7 @@ import {
   CITY_TYPES,
   SUPPLIERS,
 } from '@/utils/projectConstants';
-import { getProjectById, getProjectBudgets } from '../list/mock';
+import { getProjectById, getProjectBudgets } from '@/api/projects';
 import styles from './style/index.module.less';
 
 const { Title } = Typography;
@@ -158,8 +158,14 @@ function ProjectChange() {
 
         setLoading(true);
         try {
-          // TODO: 调用创建变更申请API
-          console.log('提交变更数据:', values);
+          // 调用创建变更申请API
+          const { submitProjectChange } = await import('@/api/projects');
+          await submitProjectChange(projectId, {
+            changeType: values.changeType,
+            description: values.description,
+            attachmentUrl: values.attachmentUrl,
+            ...values,
+          });
           Message.success('变更申请提交成功');
           setTimeout(() => {
             history.push('/projects/list');

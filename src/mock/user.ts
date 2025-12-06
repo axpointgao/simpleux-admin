@@ -47,7 +47,16 @@ if (!isSSR) {
             msg: '密码不能为空',
           };
         }
+        // 支持两种登录方式：
+        // 1. mock 登录：admin/admin
+        // 2. 邮箱登录：任何邮箱格式的用户名，密码任意（用于测试）
         if (userName === 'admin' && password === 'admin') {
+          return {
+            status: 'ok',
+          };
+        }
+        // 如果是邮箱格式，允许登录（用于测试，不验证密码）
+        if (userName.includes('@')) {
           return {
             status: 'ok',
           };

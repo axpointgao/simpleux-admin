@@ -16,9 +16,8 @@ import { IconPlus } from '@arco-design/web-react/icon';
 import { useHistory } from 'react-router-dom';
 import SearchForm from './form';
 import { getColumns } from './constants';
-import { getFrameworks, deleteFramework } from './mock';
+import { getFrameworks, deleteFramework } from '@/api/frameworks';
 import { FrameworkAgreement } from '@/types/framework';
-import './mock';
 import styles from './style/index.module.less';
 
 const { Title } = Typography;
@@ -31,10 +30,9 @@ function FrameworkList() {
     frameworkId: string
   ): Promise<boolean> {
     try {
-      // TODO: 调用API检查是否有项目使用该计件项目
-      // 这里先用mock数据模拟
-      const mockProjects = [{ frameworkId: 'fram1' }, { frameworkId: 'fram2' }];
-      return mockProjects.some((p) => p.frameworkId === frameworkId);
+      // 调用API检查是否有项目使用该计件项目
+      const { checkFrameworkHasProjects } = await import('@/api/frameworks');
+      return await checkFrameworkHasProjects(frameworkId);
     } catch (error) {
       console.error('检查关联项目失败:', error);
       return false;

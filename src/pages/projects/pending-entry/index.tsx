@@ -26,7 +26,7 @@ import {
   CITY_TYPES,
   SUPPLIERS,
 } from '@/utils/projectConstants';
-import { getProjectById } from '../list/mock';
+import { getProjectById } from '@/api/projects';
 import styles from './style/index.module.less';
 
 const { Title } = Typography;
@@ -121,8 +121,14 @@ function PendingEntry() {
 
         setLoading(true);
         try {
-          // TODO: 调用创建补录申请API
-          console.log('提交补录申请数据:', values);
+          // 调用创建补录申请API
+          const { submitPendingEntry } = await import('@/api/projects');
+          await submitPendingEntry(projectId, {
+            contractAmount: values.contractAmount,
+            laborBudget: values.laborBudget,
+            travelBudget: values.travelBudget,
+            outsourceBudget: values.outsourceBudget,
+          });
           Message.success('补录申请提交成功');
           setTimeout(() => {
             history.push('/projects/list');

@@ -18,7 +18,7 @@ import {
   getFrameworkById,
   createFramework,
   updateFramework,
-} from '../list/mock';
+} from '@/api/frameworks';
 import { getManagerName } from '@/utils/projectConstants';
 import styles from './style/index.module.less';
 

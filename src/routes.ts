@@ -233,6 +233,10 @@ export const routes: IRoute[] = [
     key: 'settings',
     children: [
       {
+        name: 'menu.settings.users',
+        key: 'settings/users',
+      },
+      {
         name: 'menu.settings.cost',
         key: 'settings/cost',
       },

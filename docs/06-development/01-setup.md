@@ -5,15 +5,18 @@
 ### 1.1 系统要求
 
 **操作系统**：
+
 - macOS 10.15+
 - Windows 10+
 - Linux (Ubuntu 20.04+)
 
-**Node.js版本**：
+**Node.js 版本**：
+
 - Node.js 18.x 或更高版本
-- 推荐使用 nvm 管理Node.js版本
+- 推荐使用 nvm 管理 Node.js 版本
 
 **包管理器**：
+
 - npm 9.x+ 或
 - yarn 1.22+ 或
 - pnpm 8.x+（推荐）
@@ -21,11 +24,13 @@
 ### 1.2 开发工具
 
 **必需工具**：
+
 - Git 2.30+
 - VS Code（推荐）或其他代码编辑器
-- 浏览器（Chrome、Firefox、Edge最新版本）
+- 浏览器（Chrome、Firefox、Edge 最新版本）
 
-**推荐VS Code插件**：
+**推荐 VS Code 插件**：
+
 - ESLint
 - Prettier
 - TypeScript
@@ -56,15 +61,17 @@ pnpm install
 ```
 
 **主要依赖包**：
-- `next`: Next.js 14框架
-- `react` & `react-dom`: React库
-- `typescript`: TypeScript支持
-- `@arco-design/web-react`: Arco Design React组件库
-- `@supabase/supabase-js`: Supabase客户端
+
+- `next`: Next.js 14 框架
+- `react` & `react-dom`: React 库
+- `typescript`: TypeScript 支持
+- `@arco-design/web-react`: Arco Design React 组件库
+- `@supabase/supabase-js`: Supabase 客户端
 - `react-hook-form`: 表单处理（可选，如需要）
 - `zod`: 数据验证（可选，如需要）
 
-**安装Arco Design**：
+**安装 Arco Design**：
+
 ```bash
 # 如果package.json中未包含，需要单独安装
 npm install @arco-design/web-react
@@ -77,12 +84,14 @@ pnpm add @arco-design/web-react
 ### 2.3 环境变量配置
 
 **创建环境变量文件**：
+
 ```bash
 # 复制环境变量模板
 cp .env.example .env.local
 ```
 
 **配置环境变量**：
+
 ```env
 # Supabase配置
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -100,23 +109,20 @@ ALIYUN_OSS_BUCKET=your_bucket_name
 ALIYUN_OSS_REGION=oss-cn-hangzhou
 ALIYUN_OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
 
-# Teambition配置（可选）
-TEAMBITION_APP_KEY=your_teambition_app_key
-TEAMBITION_APP_SECRET=your_teambition_app_secret
+# 应用配置
+NEXT_PUBLIC_APP_URL=http://localhost:3001
 
 # 应用配置
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# 应用配置
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3001
 NODE_ENV=development
 ```
 
-## 三、Arco Design配置
+## 三、Arco Design 配置
 
-### 3.1 引入Arco Design样式
+### 3.1 引入 Arco Design 样式
 
 **在根布局中引入样式**：
+
 ```typescript
 // app/layout.tsx
 import '@arco-design/web-react/dist/css/arco.css';
@@ -131,9 +137,10 @@ export default function RootLayout({ children }) {
 }
 ```
 
-### 3.2 配置ConfigProvider（可选）
+### 3.2 配置 ConfigProvider（可选）
 
-**全局配置Arco Design**：
+**全局配置 Arco Design**：
+
 ```typescript
 // app/layout.tsx
 import { ConfigProvider } from '@arco-design/web-react';
@@ -162,6 +169,7 @@ export default function RootLayout({ children }) {
 ### 3.3 主题定制（可选）
 
 **创建主题文件**：
+
 ```css
 /* styles/arco-theme.css */
 :root {
@@ -178,19 +186,22 @@ export default function RootLayout({ children }) {
 }
 ```
 
-**在layout.tsx中引入主题**：
+**在 layout.tsx 中引入主题**：
+
 ```typescript
 import './arco-theme.css';
 ```
 
 ### 3.4 按需引入（推荐）
 
-**使用babel-plugin-import实现按需引入**：
+**使用 babel-plugin-import 实现按需引入**：
+
 ```bash
 npm install --save-dev babel-plugin-import
 ```
 
-**配置babel**：
+**配置 babel**：
+
 ```json
 // .babelrc 或 babel.config.js
 {
@@ -207,7 +218,8 @@ npm install --save-dev babel-plugin-import
 }
 ```
 
-**或使用Next.js的webpack配置**：
+**或使用 Next.js 的 webpack 配置**：
+
 ```javascript
 // next.config.js
 const path = require('path');
@@ -226,17 +238,19 @@ module.exports = {
 };
 ```
 
-## 四、Supabase配置
+## 四、Supabase 配置
 
 ### 3.1 创建 Supabase 项目
 
 **步骤**：
+
 1. 访问 [Supabase](https://supabase.com)
 2. 创建新项目（选择免费版即可用于开发）
 3. 获取项目 URL 和 API Keys
 4. 配置环境变量
 
 **配置环境变量**：
+
 ```env
 # Supabase（开发环境使用免费版）
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -247,6 +261,7 @@ SUPABASE_SERVICE_ROLE_KEY=xxx
 ### 3.2 数据库迁移
 
 **运行迁移脚本**：
+
 ```bash
 # 使用 Supabase CLI
 supabase db push
@@ -256,11 +271,13 @@ supabase db push
 ```
 
 **迁移脚本位置**：
+
 ```
 supabase/migrations/
 ```
 
 **注意事项**：
+
 - 开发环境使用 Supabase 免费版
 - 生产环境使用 Supabase Pro 版
 - 迁移脚本在 Supabase 中执行
@@ -281,11 +298,13 @@ pnpm dev
 ```
 
 **访问应用**：
-- 打开浏览器访问 `http://localhost:3000`
+
+- 打开浏览器访问 `http://localhost:3001`（前端）和 `http://localhost:3002`（API 服务）
 
 ### 4.2 开发工具
 
 **代码检查**：
+
 ```bash
 # ESLint检查
 npm run lint
@@ -295,6 +314,7 @@ npm run type-check
 ```
 
 **代码格式化**：
+
 ```bash
 # Prettier格式化
 npm run format
@@ -308,6 +328,7 @@ npm run lint:fix
 ### 5.1 本地 Supabase（可选，用于本地开发）
 
 **使用 Supabase CLI 启动本地实例**：
+
 ```bash
 # 安装 Supabase CLI
 npm install -g supabase
@@ -320,6 +341,7 @@ supabase start
 ```
 
 **本地 Supabase 配置**：
+
 - 本地数据库：PostgreSQL（通过 Docker）
 - 本地 API：自动生成
 - 本地 Dashboard：http://localhost:54323
@@ -329,6 +351,7 @@ supabase start
 ### 5.2 数据库工具
 
 **推荐工具**：
+
 - pgAdmin（桌面应用，功能强大）
 - DBeaver（跨平台，免费）
 - TablePlus（macOS/Windows，界面美观）
@@ -337,9 +360,10 @@ supabase start
 
 ## 七、调试配置
 
-### 6.1 VS Code调试配置
+### 6.1 VS Code 调试配置
 
 **创建 `.vscode/launch.json`**：
+
 ```json
 {
   "version": "0.2.0",
@@ -354,7 +378,7 @@ supabase start
       "name": "Next.js: debug client-side",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3000"
+      "url": "http://localhost:3001"
     }
   ]
 }
@@ -363,9 +387,10 @@ supabase start
 ### 6.2 浏览器调试
 
 **Chrome DevTools**：
-- 使用React DevTools扩展
-- 使用Next.js DevTools
-- 查看Network、Console、Sources等
+
+- 使用 React DevTools 扩展
+- 使用 Next.js DevTools
+- 查看 Network、Console、Sources 等
 
 ## 八、测试环境
 
@@ -385,6 +410,7 @@ npm run test:e2e
 ### 7.2 测试数据
 
 **种子数据**：
+
 ```bash
 # 运行种子脚本
 npm run seed
@@ -399,6 +425,7 @@ npm run seed
 
 **问题**：依赖安装失败
 **解决方案**：
+
 ```bash
 # 清除缓存
 npm cache clean --force
@@ -414,44 +441,50 @@ npm install
 
 **问题**：环境变量未生效
 **解决方案**：
+
 - 确保 `.env.local` 文件在项目根目录
 - 重启开发服务器
 - 检查环境变量名称是否正确
 
 ### 8.3 数据库连接问题
 
-**问题**：无法连接Supabase
+**问题**：无法连接 Supabase
 **解决方案**：
-- 检查Supabase URL和API Key是否正确
+
+- 检查 Supabase URL 和 API Key 是否正确
 - 检查网络连接
-- 查看Supabase Dashboard的项目状态
+- 查看 Supabase Dashboard 的项目状态
 
-### 8.4 Arco Design样式问题
+### 8.4 Arco Design 样式问题
 
-**问题**：Arco Design组件样式未生效
+**问题**：Arco Design 组件样式未生效
 **解决方案**：
+
 - 确保在 `app/layout.tsx` 中引入了 `@arco-design/web-react/dist/css/arco.css`
-- 检查CSS文件是否正确加载
+- 检查 CSS 文件是否正确加载
 - 清除浏览器缓存并重启开发服务器
-- 检查是否有其他CSS覆盖了Arco Design样式
+- 检查是否有其他 CSS 覆盖了 Arco Design 样式
 
 **问题**：按需引入不生效
 **解决方案**：
-- 检查babel配置是否正确
+
+- 检查 babel 配置是否正确
 - 确保使用了正确的导入方式：`import { Button } from '@arco-design/web-react'`
-- 如果使用Next.js，可能需要配置webpack
+- 如果使用 Next.js，可能需要配置 webpack
 
 ## 十、开发工作流
 
-### 9.1 Git工作流
+### 9.1 Git 工作流
 
 **分支策略**：
+
 - `main`: 主分支（生产环境）
 - `develop`: 开发分支
 - `feature/*`: 功能分支
 - `fix/*`: 修复分支
 
 **提交规范**：
+
 ```
 feat: 新功能
 fix: 修复bug
@@ -464,10 +497,11 @@ chore: 构建/工具
 
 ### 9.2 代码审查
 
-**Pull Request流程**：
+**Pull Request 流程**：
+
 1. 创建功能分支
 2. 开发并提交代码
-3. 创建Pull Request
+3. 创建 Pull Request
 4. 代码审查
 5. 合并到主分支
 
@@ -475,20 +509,23 @@ chore: 构建/工具
 
 ### 10.1 开发环境优化
 
-**Next.js配置**：
+**Next.js 配置**：
+
 ```javascript
 // next.config.js
 module.exports = {
   // 开发环境优化
-  ...(process.env.NODE_ENV === 'development' && {
-    // 禁用某些优化以加快开发速度
-  }),
+  ...(process.env.NODE_ENV === 'development' &&
+    {
+      // 禁用某些优化以加快开发速度
+    }),
 };
 ```
 
 ### 10.2 构建优化
 
 **生产构建**：
+
 ```bash
 # 构建生产版本
 npm run build
@@ -501,7 +538,8 @@ npm run start
 
 ### 11.1 代码文档
 
-**JSDoc注释**：
+**JSDoc 注释**：
+
 ```typescript
 /**
  * 创建项目
@@ -513,10 +551,10 @@ export async function createProject(data: ProjectData): Promise<Project> {
 }
 ```
 
-### 11.2 API文档
+### 11.2 API 文档
 
 **接口文档**：
-- 使用OpenAPI/Swagger规范
+
+- 使用 OpenAPI/Swagger 规范
 - 提供接口描述和示例
 - 支持在线测试
-

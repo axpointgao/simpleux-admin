@@ -5,26 +5,29 @@
 ### 1.1 生产环境要求
 
 **服务器要求**：
-- CPU: 2核心+
+
+- CPU: 2 核心+
 - 内存: 4GB+
 - 存储: 20GB+
 - 网络: 10Mbps+
 
 **运行环境**：
+
 - Node.js 18.x+
 - npm 9.x+ 或 pnpm 8.x+
 
 ### 1.2 服务依赖
 
 **必需服务**：
+
 - Supabase（数据库、认证、基础文件存储）
 - 阿里云 ECS（应用部署）
 - 钉钉开放平台（集成）
 
 **可选服务**：
+
 - 阿里云 OSS（大文件存储，可选）
 - 阿里云 CDN（静态资源加速，可选）
-- Teambition（工时同步）
 - 阿里云日志服务 SLS（日志管理，可选）
 - 阿里云云监控（监控告警，可选）
 
@@ -33,6 +36,7 @@
 ### 2.1 阿里云 ECS 部署（推荐）
 
 **优势**：
+
 - 国内访问速度快
 - 完全控制部署环境
 - 支持 Docker 容器化部署
@@ -43,19 +47,22 @@
 **部署步骤**：
 
 1. **创建 ECS 实例**：
+
    - 登录阿里云控制台
-   - 选择地域（推荐：华东1-杭州、华东2-上海）
-   - 选择实例规格（推荐：2核4GB起步）
+   - 选择地域（推荐：华东 1-杭州、华东 2-上海）
+   - 选择实例规格（推荐：2 核 4GB 起步）
    - 选择操作系统（推荐：Ubuntu 22.04 或 CentOS 7）
    - 配置安全组（开放 80、443、3000 端口）
    - 创建并启动实例
 
 2. **连接服务器**：
+
 ```bash
 ssh root@your-server-ip
 ```
 
 3. **安装 Node.js**：
+
 ```bash
 # 使用 nvm 安装 Node.js 18
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -65,6 +72,7 @@ nvm use 18
 ```
 
 4. **安装 Docker（可选）**：
+
 ```bash
 # 安装 Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -82,6 +90,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 ### 2.2 Docker 部署（推荐方式）
 
 **Dockerfile**：
+
 ```dockerfile
 FROM node:18-alpine AS base
 
@@ -114,6 +123,7 @@ CMD ["node", "server.js"]
 ```
 
 **docker-compose.yml**：
+
 ```yaml
 version: '3.8'
 
@@ -121,7 +131,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
@@ -135,13 +145,22 @@ services:
       - ALIYUN_OSS_REGION=${ALIYUN_OSS_REGION}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--quiet',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3002/api/projects',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
 ```
 
 **部署命令**：
+
 ```bash
 # 构建镜像
 docker build -t simpleux-system .
@@ -161,6 +180,7 @@ docker-compose down
 **部署步骤**：
 
 1. **安装 Node.js**：
+
 ```bash
 # 使用 nvm 安装
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -170,27 +190,32 @@ nvm use 18
 ```
 
 2. **克隆项目**：
+
 ```bash
 git clone <repository-url>
 cd simpleux_system
 ```
 
 3. **安装依赖**：
+
 ```bash
 npm install --production
 ```
 
 4. **构建应用**：
+
 ```bash
 npm run build
 ```
 
 5. **启动应用**：
+
 ```bash
 npm start
 ```
 
 6. **使用 PM2 管理进程**：
+
 ```bash
 # 安装 PM2
 npm install -g pm2
@@ -212,6 +237,7 @@ pm2 logs simpleux-system
 ### 2.4 配置 Nginx 反向代理
 
 **安装 Nginx**：
+
 ```bash
 # Ubuntu/Debian
 sudo apt update
@@ -222,11 +248,12 @@ sudo yum install nginx
 ```
 
 **Nginx 配置**：
+
 ```nginx
 server {
     listen 80;
     server_name your-domain.com;
-    
+
     # 重定向到 HTTPS
     return 301 https://$server_name$request_uri;
 }
@@ -234,14 +261,14 @@ server {
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
-    
+
     # SSL 证书配置（使用阿里云 SSL 证书或 Let's Encrypt）
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
-    
+
     # 反向代理到 Next.js 应用
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -251,10 +278,10 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
     }
-    
+
     # 静态资源缓存
     location /_next/static {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3002;
         proxy_cache_valid 200 60m;
         add_header Cache-Control "public, max-age=3600";
     }
@@ -262,6 +289,7 @@ server {
 ```
 
 **启动 Nginx**：
+
 ```bash
 sudo systemctl start nginx
 sudo systemctl enable nginx
@@ -272,6 +300,7 @@ sudo systemctl enable nginx
 ### 3.1 生产环境变量
 
 **必需变量**：
+
 ```env
 # Supabase（必需）
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -286,12 +315,10 @@ NODE_ENV=production
 DINGTALK_APP_KEY=xxx
 DINGTALK_APP_SECRET=xxx
 
-# Teambition（可选）
-TEAMBITION_APP_KEY=xxx
-TEAMBITION_APP_SECRET=xxx
 ```
 
 **可选变量（混合方案）**：
+
 ```env
 # 阿里云 OSS（可选，用于大文件存储）
 ALIYUN_OSS_ACCESS_KEY_ID=xxx
@@ -307,17 +334,20 @@ ALIYUN_CDN_DOMAIN=cdn.your-domain.com
 ### 3.2 环境变量管理
 
 **阿里云 ECS**：
+
 - 使用 `.env.production` 文件（推荐）
 - 或通过系统环境变量配置
 - 或使用阿里云密钥管理服务（KMS）存储敏感信息
 
 **Docker**：
+
 - 使用 `.env` 文件
 - 或通过 `docker-compose.yml` 配置
 - 敏感信息使用 Docker Secrets（生产环境推荐）
 
 **安全建议**：
-- 敏感信息（Supabase Service Role Key、API密钥）使用阿里云密钥管理服务（KMS）
+
+- 敏感信息（Supabase Service Role Key、API 密钥）使用阿里云密钥管理服务（KMS）
 - 不要将 `.env` 文件提交到 Git 仓库
 - 使用 `.env.example` 作为模板
 
@@ -326,6 +356,7 @@ ALIYUN_CDN_DOMAIN=cdn.your-domain.com
 ### 4.1 创建 Supabase 项目
 
 **步骤**：
+
 1. 访问 [Supabase](https://supabase.com)
 2. 创建新项目
 3. 获取项目 URL 和 API Keys
@@ -334,6 +365,7 @@ ALIYUN_CDN_DOMAIN=cdn.your-domain.com
 ### 4.2 数据库迁移
 
 **运行迁移脚本**：
+
 ```bash
 # 使用 Supabase CLI
 supabase db push
@@ -343,6 +375,7 @@ supabase db push
 ```
 
 **迁移脚本位置**：
+
 ```
 supabase/migrations/
 ```
@@ -350,6 +383,7 @@ supabase/migrations/
 ### 4.3 配置 RLS 策略
 
 **启用 RLS**：
+
 ```sql
 -- 为表启用 RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -358,6 +392,7 @@ ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ```
 
 **创建 RLS 策略**：
+
 ```sql
 -- 示例：用户只能查看自己的 profile
 CREATE POLICY "Users can view own profile"
@@ -368,12 +403,14 @@ USING (auth.uid() = id);
 ### 4.4 数据备份
 
 **自动备份**：
+
 - Supabase 提供自动备份功能
 - 每日自动备份
 - 备份保留 30 天
 - 支持时间点恢复
 
 **手动备份**：
+
 ```bash
 # 使用 Supabase CLI
 supabase db dump -f backup.sql
@@ -383,20 +420,23 @@ pg_dump -h your-supabase-host -U postgres -d postgres > backup.sql
 ```
 
 **备份策略**：
+
 - 每日自动备份（Supabase 自动处理）
 - 重要操作前手动备份
 - 定期测试备份恢复流程
 
-## 五、域名和SSL
+## 五、域名和 SSL
 
 ### 5.1 域名配置
 
 **域名解析**：
+
 1. 在阿里云域名控制台配置域名解析
 2. 添加 A 记录，指向 ECS 公网 IP
 3. 或使用 CNAME 记录，指向 CDN 域名
 
 **CDN 配置（推荐）**：
+
 1. 在阿里云 CDN 控制台创建加速域名
 2. 配置源站地址（ECS 公网 IP 或内网 IP）
 3. 配置回源协议（HTTP/HTTPS）
@@ -406,11 +446,13 @@ pg_dump -h your-supabase-host -U postgres -d postgres > backup.sql
 ### 5.2 SSL 证书配置
 
 **方案一：使用阿里云 SSL 证书（推荐）**：
+
 1. 在阿里云 SSL 证书控制台申请免费证书（DV SSL）
 2. 下载证书文件（Nginx 格式）
 3. 上传到服务器并配置 Nginx
 
 **方案二：使用 Let's Encrypt（免费）**：
+
 ```bash
 # 安装 Certbot
 sudo apt install certbot python3-certbot-nginx
@@ -423,17 +465,18 @@ sudo certbot renew --dry-run
 ```
 
 **Nginx SSL 配置**：
+
 ```nginx
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
-    
+
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
-    
+
     # ... 其他配置
 }
 ```
@@ -441,22 +484,26 @@ server {
 ### 5.3 混合方案：Supabase Storage + 阿里云 OSS（可选）
 
 **文件存储策略**：
+
 - **小文件（< 10MB）**：使用 Supabase Storage
 - **大文件（> 10MB）**：使用阿里云 OSS
 - **需要国内加速的文件**：使用阿里云 OSS
 
 **Supabase Storage 配置**：
+
 - 在 Supabase Dashboard 中创建 Storage Bucket
 - 配置访问策略（公开或私有）
 - 使用 Supabase Client 上传文件
 
 **阿里云 OSS 配置（可选）**：
+
 1. 在阿里云 OSS 控制台创建 Bucket
 2. 选择地域（推荐：与应用服务器同一地域）
 3. 配置访问权限（私有读写，通过应用服务器访问）
 4. 配置跨域规则（CORS，如需要）
 
 **配置 OSS 客户端**：
+
 ```typescript
 // lib/storage/oss.ts
 import OSS from 'ali-oss';
@@ -470,6 +517,7 @@ const client = new OSS({
 ```
 
 **文件上传选择逻辑**：
+
 ```typescript
 // lib/storage/index.ts
 import { supabase } from '@/lib/supabase/client';
@@ -483,11 +531,11 @@ export async function uploadFile(file: File, path: string) {
     const { data, error } = await supabase.storage
       .from('uploads')
       .upload(path, file);
-    
+
     if (error) throw error;
     return data;
   }
-  
+
   // 大文件使用阿里云 OSS
   const buffer = await file.arrayBuffer();
   const result = await ossClient.put(path, Buffer.from(buffer));
@@ -499,7 +547,8 @@ export async function uploadFile(file: File, path: string) {
 
 ### 6.1 构建优化
 
-**Next.js配置**：
+**Next.js 配置**：
+
 ```javascript
 // next.config.js
 module.exports = {
@@ -512,11 +561,13 @@ module.exports = {
 ### 6.2 缓存策略
 
 **静态资源缓存**：
-- 使用CDN缓存静态资源
+
+- 使用 CDN 缓存静态资源
 - 设置合理的缓存时间
 
-**API缓存**：
-- 使用Next.js缓存机制
+**API 缓存**：
+
+- 使用 Next.js 缓存机制
 - 配置缓存策略
 
 ## 七、监控和日志
@@ -524,30 +575,35 @@ module.exports = {
 ### 7.1 应用监控
 
 **阿里云云监控**：
+
 - 免费，功能完善
 - 监控 ECS CPU、内存、磁盘使用率
 - 监控 RDS 连接数、查询性能
 - 配置告警规则（邮件、短信、钉钉）
 
 **阿里云应用实时监控服务 ARMS（可选）**：
+
 - 应用性能监控（APM）
 - 前端监控
 - 自定义监控指标
 - 告警通知
 
 **第三方监控（可选）**：
+
 - Sentry（错误监控）
 - 自建 Prometheus + Grafana
 
 ### 7.2 日志管理
 
 **阿里云日志服务 SLS**：
+
 - 功能完善，价格合理
 - 支持日志采集、存储、查询、分析
 - 支持日志告警
 - 支持日志投递到 OSS（长期存储）
 
 **应用日志配置**：
+
 ```typescript
 // 使用 winston 或 pino 记录日志
 import winston from 'winston';
@@ -563,15 +619,17 @@ const logger = winston.createLogger({
 ```
 
 **日志收集**：
+
 - 使用阿里云 Logtail 采集应用日志
 - 或使用文件日志，定期上传到 SLS
-- 配置日志保留策略（建议：30-90天）
+- 配置日志保留策略（建议：30-90 天）
 
 ## 八、安全配置
 
 ### 8.1 安全头设置
 
-**Next.js安全头**：
+**Next.js 安全头**：
+
 ```javascript
 // next.config.js
 module.exports = {
@@ -602,6 +660,7 @@ module.exports = {
 ### 8.2 环境变量安全
 
 **敏感信息**：
+
 - 不在代码中硬编码
 - 使用环境变量
 - 加密存储敏感数据
@@ -610,7 +669,8 @@ module.exports = {
 
 ### 9.1 版本管理
 
-**Git标签**：
+**Git 标签**：
+
 ```bash
 # 创建发布标签
 git tag -a v1.0.0 -m "Release v1.0.0"
@@ -620,6 +680,7 @@ git push origin v1.0.0
 ### 9.2 回滚步骤
 
 **Docker 回滚**：
+
 ```bash
 # 使用之前的镜像
 docker-compose down
@@ -632,6 +693,7 @@ docker-compose up -d
 ```
 
 **传统部署回滚**：
+
 ```bash
 # 使用 Git 回滚代码
 git checkout <previous-commit>
@@ -642,6 +704,7 @@ pm2 restart simpleux-system
 ```
 
 **数据库回滚**：
+
 ```bash
 # 恢复数据库备份
 pg_restore -h your-rds-host -U username -d database backup.dump
@@ -656,7 +719,7 @@ pg_restore -h your-rds-host -U username -d database backup.dump
 - [ ] 环境变量已配置（Supabase URL 和 Keys）
 - [ ] 数据库迁移已完成
 - [ ] RLS 策略已配置
-- [ ] 域名和SSL已配置
+- [ ] 域名和 SSL 已配置
 - [ ] 阿里云 OSS 已配置（如使用混合方案）
 - [ ] CDN 已配置（如使用）
 - [ ] 监控和日志已配置
@@ -665,7 +728,7 @@ pg_restore -h your-rds-host -U username -d database backup.dump
 
 - [ ] 应用正常启动
 - [ ] Supabase 连接正常
-- [ ] API接口正常
+- [ ] API 接口正常
 - [ ] 认证功能正常（Supabase Auth）
 - [ ] 文件上传功能正常（Supabase Storage 或 OSS）
 - [ ] RLS 权限控制正常
@@ -673,4 +736,3 @@ pg_restore -h your-rds-host -U username -d database backup.dump
 - [ ] CDN 加速正常（如使用）
 - [ ] SSL 证书正常
 - [ ] 钉钉集成正常
-

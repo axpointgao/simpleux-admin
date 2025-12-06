@@ -9,9 +9,9 @@ import {
 import { FormInstance } from '@arco-design/web-react/es/Form';
 import { IconLock, IconUser } from '@arco-design/web-react/icon';
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import useStorage from '@/utils/useStorage';
 import useLocale from '@/utils/useLocale';
+import { signIn } from '@/utils/supabaseAuth';
 import locale from './locale';
 import styles from './style/index.module.less';
 
@@ -33,28 +33,31 @@ export default function LoginForm() {
     } else {
       removeLoginParams();
     }
-    // 记录登录状态
-    localStorage.setItem('userStatus', 'login');
     // 跳转首页
     window.location.href = '/';
   }
 
-  function login(params) {
+  async function login(params: { userName: string; password: string }) {
     setErrorMessage('');
     setLoading(true);
-    axios
-      .post('/api/user/login', params)
-      .then((res) => {
-        const { status, msg } = res.data;
-        if (status === 'ok') {
-          afterLoginSuccess(params);
-        } else {
-          setErrorMessage(msg || t['login.form.login.errMsg']);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
+
+    try {
+      // 使用 Supabase Auth 登录
+      const result = await signIn({
+        email: params.userName, // 使用邮箱登录
+        password: params.password,
       });
+
+      if (result.success) {
+        afterLoginSuccess(params);
+      } else {
+        setErrorMessage(result.error || t['login.form.login.errMsg']);
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message || t['login.form.login.errMsg']);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function onSubmitClick() {
@@ -84,15 +87,19 @@ export default function LoginForm() {
         className={styles['login-form']}
         layout="vertical"
         ref={formRef}
-        initialValues={{ userName: 'admin', password: 'admin' }}
+        initialValues={{ userName: '', password: '' }}
       >
         <Form.Item
           field="userName"
-          rules={[{ required: true, message: t['login.form.userName.errMsg'] }]}
+          label="邮箱"
+          rules={[
+            { required: true, message: '邮箱不能为空' },
+            { type: 'email', message: '请输入有效的邮箱地址' },
+          ]}
         >
           <Input
             prefix={<IconUser />}
-            placeholder={t['login.form.userName.placeholder']}
+            placeholder="请输入邮箱（例如：admin@test.com）"
             onPressEnter={onSubmitClick}
           />
         </Form.Item>

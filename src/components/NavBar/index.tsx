@@ -33,6 +33,7 @@ import Settings from '../Settings';
 import styles from './style/index.module.less';
 import useStorage from '@/utils/useStorage';
 import { generatePermission } from '@/routes';
+import { signOut } from '@/utils/supabaseAuth';
 
 function Navbar({ show }: { show: boolean }) {
   const t = useLocale();
@@ -44,7 +45,9 @@ function Navbar({ show }: { show: boolean }) {
 
   const { theme, setTheme } = useContext(GlobalContext);
 
-  function logout() {
+  async function logout() {
+    // 使用 Supabase 登出
+    await signOut();
     setUserStatus('logout');
     window.location.href = '/login';
   }

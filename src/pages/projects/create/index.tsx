@@ -275,9 +275,17 @@ function ProjectCreate() {
             values.demandCode = `DEM-${dateStr}-${sequence}`;
           }
 
-          // TODO: 调用创建/更新项目API
-          console.log('提交数据:', values);
-          Message.success(isEdit ? '项目更新成功' : '项目创建成功');
+          // 调用创建/更新项目API
+          const { createProject, updateProject } = await import(
+            '@/api/projects'
+          );
+          if (isEdit && projectId) {
+            await updateProject(projectId, values);
+            Message.success('项目更新成功');
+          } else {
+            await createProject(values);
+            Message.success('项目创建成功');
+          }
           setTimeout(() => {
             history.push('/projects/list');
           }, 1000);
