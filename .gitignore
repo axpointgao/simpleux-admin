@@ -41,4 +41,5 @@ yarn-error.log*
 .eslintcache
 
 # stylelint
-.stylelintcache
+.stylelintcache/simpleux-api/.next/
+/simpleux-api/node_modules/
